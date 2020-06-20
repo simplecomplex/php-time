@@ -30,8 +30,6 @@ namespace SimpleComplex\Time;
  *
  * @see \SimpleComplex\Time\Time
  *
- * Fork of \SimpleComplex\Utils\Time\TimeLocal.
- *
  * @package SimpleComplex\Time
  */
 class TimeLocal extends Time

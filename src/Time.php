@@ -22,8 +22,6 @@ namespace SimpleComplex\Time;
  *
  * @see TimeIntervalConstant
  *
- * Fork of \SimpleComplex\Utils\Time\Time.
- *
  * @package SimpleComplex\Time
  */
 class Time extends \DateTime implements \JsonSerializable
@@ -261,7 +259,6 @@ class Time extends \DateTime implements \JsonSerializable
                 $o = (new static())->setTimestamp($subject);
             }
             else {
-                // @todo
                 throw new \TypeError(
                     'Arg $time type[' . static::getType($time) . '] is not \\DateTime|string|int.'
                 );
@@ -1151,6 +1148,45 @@ class Time extends \DateTime implements \JsonSerializable
     public function getDateTimeISO(bool $noSeconds = false) : string
     {
         return $this->format(!$noSeconds ? 'Y-m-d H:i:s' : 'Y-m-d H:i');
+    }
+
+    /**
+     * Seconds since Unix Epoch (1970-01-01).
+     *
+     * Native getTimestamp() disregards microseconds; in effect floors them.
+     * This method rounds microseconds.
+     *
+     * @return int
+     */
+    public function toUnixSeconds() : int
+    {
+        return (int) round(
+            $this->getTimestamp() + ((int) $this->format('u') / 1000000)
+        );
+    }
+
+    /**
+     * Milliseconds since Unix Epoch (1970-01-01).
+     *
+     * @return float
+     *      Float to avoid hitting precision limit.
+     */
+    public function toUnixMilliseconds() : float
+    {
+        // Uses the 'u' format instead of 'v' for consistency with
+        // toUnixMicroseconds().
+        return (float) ($this->getTimestamp() * 1000) + round($this->format('u') / 1000, 3);
+    }
+
+    /**
+     * Microseconds since Unix Epoch (1970-01-01).
+     *
+     * @return float
+     *      Float to avoid hitting precision limit.
+     */
+    public function toUnixMicroseconds() : float
+    {
+        return (float) ($this->getTimestamp() * 1000000) + (float) $this->format('u');
     }
 
     /**

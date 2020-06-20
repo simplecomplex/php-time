@@ -16,30 +16,22 @@ use SimpleComplex\Time\Time;
 /**
  * @code
  * // CLI, in document root:
- * backend/vendor/bin/phpunit backend/vendor/simplecomplex/time/tests/src/TimeTest.php
+ * vendor/bin/phpunit --do-not-cache-result vendor/simplecomplex/time/tests/src/TimeTest.php
  * @endcode
  *
  * @package SimpleComplex\Tests\Time
  */
 class TimeTest extends TestCase
 {
-    /**
-     * @see BootstrapTest::testDependencies()
-     */
-    public function testInstantiation()
-    {
-        // @todo
-        //$container = (new BootstrapTest())->testDependencies();
-        //static::assertInstanceOf(ContainerInterface::class, $container);
-    }
 
     /**
      * @see \SimpleComplex\Time\Time::validateTimezoneDefault()
      *
-     * @expectedException \LogicException
      */
     public function testValidateTimezoneDefault()
     {
+        date_default_timezone_set(BootstrapTest::TIMEZONE);
+
         $timezone_default = date_default_timezone_get();
         static::assertTrue(Time::checkTimezoneDefault($timezone_default));
 
@@ -47,15 +39,11 @@ class TimeTest extends TestCase
         if ($tz_default == 'UTC' || $tz_default == 'Z') {
             static::assertTrue(Time::checkTimezoneDefault('UTC'));
             static::assertFalse(Time::checkTimezoneDefault(BootstrapTest::TIMEZONE));
-            /**
-             * @throws \LogicException
-             */
+            $this->expectException(\LogicException::class);
             Time::checkTimezoneDefault(BootstrapTest::TIMEZONE, true);
         } else {
             static::assertFalse(Time::checkTimezoneDefault('UTC'));
-            /**
-             * @throws \LogicException
-             */
+            $this->expectException(\LogicException::class);
             Time::checkTimezoneDefault('UTC', true);
         }
     }
@@ -198,8 +186,6 @@ class TimeTest extends TestCase
             $log[] = str_pad('' . $months, 3, ' ', STR_PAD_LEFT) . ': ' . $result;
         }
 
-        // @todo
-        //TestHelper::log("Time::modifyDate()\n" . join("\n", $log));
 
         // /Modifying month only.-----------------------------------------------
 
@@ -237,8 +223,6 @@ class TimeTest extends TestCase
 
     /**
      * @see \SimpleComplex\Time\Time::diffConstant()
-     *
-     * @expectedException \RuntimeException
      */
     public function testDiffConstant()
     {
@@ -255,7 +239,8 @@ class TimeTest extends TestCase
         date_default_timezone_set('UTC');
         $first = (new Time('2019-02-01'))->setToDateStart();
         $last = (new Time('2019-03-01'))->setToDateStart();
-        static::assertSame(1, $first->diffConstant($last)->totalMonths);
+        $diff = $first->diffConstant($last);
+        static::assertSame(1, $diff->totalMonths);
 
         // This would fail if that bug wasn't handled.
         date_default_timezone_set(BootstrapTest::TIMEZONE);
@@ -281,6 +266,7 @@ class TimeTest extends TestCase
          * and falsy arg $allowUnEqualTimezones.
          * @see \SimpleComplex\Time\Time::diffConstant()
          */
+        $this->expectException(\RuntimeException::class);
         static::assertSame(0, $first->diffConstant($last, false)->totalMonths);
     }
 
@@ -292,16 +278,15 @@ class TimeTest extends TestCase
         $datetime_utc = $datetime_local->setTimezone(new \DateTimeZone('UTC'));
         $time_local = Time::createFromDateTime($datetime_local);
         $time_utc = Time::createFromDateTime($datetime_utc);
-        /*
-         * @todo
-        TestHelper::logVariable(__FUNCTION__, [
-            'time local' => Time::resolve($time_local),
-            'time utc, keep foreign' => Time::resolve($time_utc, true),
-            'time utc' => Time::resolve($time_utc),
-            'datetime local' => Time::resolve($datetime_local),
-            'datetime utc, keep foreign' => Time::resolve($datetime_utc, true),
-            'datetime utc' => Time::resolve($datetime_utc),
-        ]);*/
+
+//        \SimpleComplex\Inspect\Inspect::getInstance()->variable([
+//            'time local' => Time::resolve($time_local),
+//            'time utc, keep foreign' => Time::resolve($time_utc, true),
+//            'time utc' => Time::resolve($time_utc),
+//            'datetime local' => Time::resolve($datetime_local),
+//            'datetime utc, keep foreign' => Time::resolve($datetime_utc, true),
+//            'datetime utc' => Time::resolve($datetime_utc),
+//        ])->log();
 
         $t = Time::resolve(0);
         static::assertInstanceOf(Time::class, $t);
@@ -316,8 +301,6 @@ class TimeTest extends TestCase
         static::assertSame('1969-12-31T23:59:59Z', $t->toISOUTC());
 
         $t = Time::resolve($datetime_utc);
-        // @todo
-        //TestHelper::logVariable(__FUNCTION__, $t);
         static::assertInstanceOf(Time::class, $t);
         static::assertSame($time_local->toISOUTC(), $t->toISOUTC());
         static::assertTrue($t->timezoneIsLocal());
@@ -326,5 +309,42 @@ class TimeTest extends TestCase
         $t = Time::resolve('2019-04-05T10:14:47 02:00');
         static::assertInstanceOf(Time::class, $t);
         static::assertSame('2019-04-05T10:14:47+02:00', $t->toISOZonal());
+    }
+
+
+    public function testUnixEpoch()
+    {
+        date_default_timezone_set(BootstrapTest::TIMEZONE);
+
+
+        // \DateTime::getTimestamp() must return negative when < 1970-01-01.
+
+        $time = new Time('1900-01-01');
+        $timestamp = $time->getTimestamp();
+        static::assertIsInt($timestamp, '(Date < 1970-01-01)->getTimestamp() is int');
+        static::assertTrue($timestamp < 0, '(Date < 1970-01-01)->getTimestamp() is negative');
+
+
+        // \DateTime::getTimestamp() truncates/ignores effectively floors microseconds.
+
+        $floor = new Time('2020-01-01T12:00:00.399999Z');
+        static::assertTrue($floor->getTimestamp() % 2 == 0, 'getTimestamp() floors microseconds');
+        static::assertSame(1577880000, $floor->getTimestamp(), 'floorable truncated');
+
+        $ceil = new Time('2020-01-01T12:00:00.899999Z');
+        static::assertTrue($ceil->getTimestamp() % 2 == 0, 'getTimestamp() floors microseconds');
+        static::assertSame(1577880000, $ceil->getTimestamp(), 'ceilable truncated');
+
+        static::assertSame(1577880000, $floor->toUnixSeconds(), 'floorable floored');
+        static::assertSame(1577880001, $ceil->toUnixSeconds(), 'ceilable ceiled');
+
+
+        // Milli/microseconds methods aren't exact, because floats.
+
+        static::assertTrue(abs(1577880000400 - $floor->toUnixMilliseconds()) < 10, 'floorable milliseconds');
+        static::assertTrue(abs(1577880000900 - $ceil->toUnixMilliseconds()) < 10, 'ceilable milliseconds');
+
+        static::assertTrue(abs(1577880000400000 - $floor->toUnixMicroseconds()) < 10, 'floorable microseconds');
+        static::assertTrue(abs(1577880000900000 - $ceil->toUnixMicroseconds()) < 10, 'ceilable microseconds');
     }
 }

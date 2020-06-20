@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Time;
 
+use SimpleComplex\Explorable\Explorable;
+
 /**
  * Wrapped native DateInterval plus totalling props for months thru seconds.
  *
@@ -41,21 +43,33 @@ namespace SimpleComplex\Time;
  * @property-read int $totalMinutes
  * @property-read int $totalSeconds
  *
- * Fork of \SimpleComplex\Utils\Time\TimeIntervalConstant.
- *
  * @package SimpleComplex\Time
  */
-class TimeIntervalConstant //extends Explorable // @todo: create Explorable package.
+class TimeIntervalConstant extends Explorable
 {
+    const EXPLORABLE_VISIBLE = [
+        // \DateInterval.
+        'y' => null,
+        'm' => null,
+        'd' => null,
+        'h' => null,
+        'i' => null,
+        's' => null,
+        'f' => null,
+        'invert' => null,
+        'days' => null,
+        // Own.
+        'totalMonths' => null,
+        'totalDays' => null,
+        'totalHours' => null,
+        'totalMinutes' => null,
+        'totalSeconds' => null,
+    ];
+
     /**
      * @var \DateInterval
      */
     protected $dateInterval;
-
-    /**
-     * @var array
-     */
-    protected $explorableIndex;
 
     /**
      * @see Time::diffConstant()
@@ -65,13 +79,6 @@ class TimeIntervalConstant //extends Explorable // @todo: create Explorable pack
     public function __construct(\DateInterval $interval)
     {
         $this->dateInterval = $interval;
-
-        $this->explorableIndex = array_keys(get_object_vars($interval));
-        $this->explorableIndex[] = 'totalMonths';
-        $this->explorableIndex[] = 'totalDays';
-        $this->explorableIndex[] = 'totalHours';
-        $this->explorableIndex[] = 'totalMinutes';
-        $this->explorableIndex[] = 'totalSeconds';
     }
 
     /**
@@ -108,17 +115,21 @@ class TimeIntervalConstant //extends Explorable // @todo: create Explorable pack
      * DateInterval::$days is false when the DateInterval wasn't created
      * via DateTimeInterface::diff().
      *
-     * @param string $name
+     * @param string $key
      *
      * @return mixed
      *
      * @throws \OutOfBoundsException
      *      If no such instance property.
      */
-    public function __get(string $name)
+    public function __get(string $key)
     {
-        if (in_array($name, $this->explorableIndex, true)) {
-            switch ($name) {
+        if (!$this->explorableCursor) {
+            $this->explorablePrepare();
+        }
+
+        if (in_array($key, $this->explorableCursor)) {
+            switch ($key) {
                 case 'totalMonths':
                     return (!$this->dateInterval->invert ? 1 : -1)
                         * ((int) ($this->dateInterval->format('%y') * 12) + (int) $this->dateInterval->format('%m'));
@@ -133,27 +144,27 @@ class TimeIntervalConstant //extends Explorable // @todo: create Explorable pack
                     if ($days === false) {
                         $days = (int) $this->dateInterval->format('%a');
                     }
-                    if ($name == 'totalDays') {
+                    if ($key == 'totalDays') {
                         return !$days ? $days : ($sign * $days);
                     }
                     $hours = ($days * 24) + $this->dateInterval->h;
-                    if ($name == 'totalHours') {
+                    if ($key == 'totalHours') {
                         return !$hours ? $hours : ($sign * $hours);
                     }
                     $minutes = ($hours * 60) + $this->dateInterval->i;
-                    if ($name == 'totalMinutes') {
+                    if ($key == 'totalMinutes') {
                         return !$minutes ? $minutes : ($sign * $minutes);
                     }
                     $seconds = ($minutes * 60) + $this->dateInterval->s;
                     return !$seconds ? $seconds : ($sign * $seconds);
             }
-            return $this->dateInterval->{$name};
+            return $this->dateInterval->{$key};
         }
-        throw new \OutOfBoundsException(get_class($this) . ' has no property[' . $name . '].');
+        throw new \OutOfBoundsException(get_class($this) . ' has no property[' . $key . '].');
     }
 
     /**
-     * @param string $name
+     * @param string $key
      * @param mixed|null $value
      *
      * @return void
@@ -163,48 +174,52 @@ class TimeIntervalConstant //extends Explorable // @todo: create Explorable pack
      * @throws \RuntimeException
      *      If that instance property is read-only.
      */
-    public function __set(string $name, $value)
+    public function __set(string $key, $value)
     {
-        if (in_array($name, $this->explorableIndex, true)) {
-            throw new \RuntimeException(get_class($this) . ' property[' . $name . '] is read-only.');
+        if (!$this->explorableCursor) {
+            $this->explorablePrepare();
         }
-        throw new \OutOfBoundsException(get_class($this) . ' has no property[' . $name . '].');
+
+        if (in_array($key, $this->explorableCursor)) {
+            throw new \RuntimeException(get_class($this) . ' property[' . $key . '] is read-only.');
+        }
+        throw new \OutOfBoundsException(get_class($this) . ' has no property[' . $key . '].');
     }
 
     /**
-     * @param string $name
+     * @param string $key
      * @param $arguments
      *
      * @throws \RuntimeException
      *      Always.
      */
-    public function __call(string $name, $arguments)
+    public function __call(string $key, $arguments)
     {
         throw new \RuntimeException(
-            get_class($this) . ' method[' . $name . '] doesn\'t exist, ' . (
-                !method_exists(\DateInterval::class, $name) ? 'nor has native \DateInterval such method.' :
+            get_class($this) . ' method[' . $key . '] doesn\'t exist, ' . (
+                !method_exists(\DateInterval::class, $key) ? 'nor has native \DateInterval such method.' :
                     'despite that native \DateInterval has that method.'
             )
         );
     }
 
     /**
-     * @param string $name
+     * @param string $key
      * @param $arguments
      *
      * @throws \RuntimeException
      *      Always.
      */
-    public static function __callStatic(string $name, $arguments)
+    public static function __callStatic(string $key, $arguments)
     {
-        if ($name == 'createFromDateString') {
+        if ($key == 'createFromDateString') {
             throw new \RuntimeException(
-                get_called_class() . ' method[' . $name . '] is forbidden because it would mutate the interval.'
+                get_called_class() . ' method[' . $key . '] is forbidden because it would mutate the interval.'
             );
         }
         throw new \RuntimeException(
-            get_called_class() . ' method[' . $name . '] doesn\'t exist, ' . (
-            !method_exists(\DateInterval::class, $name) ? 'nor has native \DateInterval such method.' :
+            get_called_class() . ' method[' . $key . '] doesn\'t exist, ' . (
+            !method_exists(\DateInterval::class, $key) ? 'nor has native \DateInterval such method.' :
                 'despite that native \DateInterval has that method.'
             )
         );
