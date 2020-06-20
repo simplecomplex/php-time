@@ -19,7 +19,7 @@
         "phpunit/phpunit": "^6.5"
     },
     "suggest": {
-        "simplecomplex/inspect": "Better variable dumps and trace."
+        "simplecomplex/inspect": "Better variable dumps and traces."
     },
     "autoload": {
         "psr-4": {
