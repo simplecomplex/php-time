@@ -9,7 +9,9 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Time;
 
-use SimpleComplex\Explorable\Explorable;
+use SimpleComplex\Explorable\ExplorableInterface;
+use SimpleComplex\Explorable\ExplorableBaseTrait;
+use SimpleComplex\Explorable\ExplorableDumpTrait;
 
 /**
  * Wrapped native DateInterval plus totalling props for months thru seconds.
@@ -45,8 +47,11 @@ use SimpleComplex\Explorable\Explorable;
  *
  * @package SimpleComplex\Time
  */
-class TimeIntervalConstant extends Explorable
+class TimeIntervalConstant implements ExplorableInterface
 {
+    use ExplorableBaseTrait;
+    use ExplorableDumpTrait;
+
     const EXPLORABLE_VISIBLE = [
         // \DateInterval.
         'y' => null,
@@ -66,12 +71,7 @@ class TimeIntervalConstant extends Explorable
         'totalSeconds' => null,
     ];
 
-    /**
-     * @see Explorable::$explorableKeys
-     *
-     * @var string[]|null
-     */
-    protected static $explorableKeys;
+    const EXPLORABLE_HIDDEN = [];
 
     /**
      * @var \DateInterval
