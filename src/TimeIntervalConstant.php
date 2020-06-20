@@ -67,6 +67,13 @@ class TimeIntervalConstant extends Explorable
     ];
 
     /**
+     * @see Explorable::$explorableKeys
+     *
+     * @var string[]|null
+     */
+    protected static $explorableKeys;
+
+    /**
      * @var \DateInterval
      */
     protected $dateInterval;
