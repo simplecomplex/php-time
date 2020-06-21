@@ -39,6 +39,7 @@ use SimpleComplex\Explorable\ExplorableDumpTrait;
  * @property-read int|bool $days  Use $totalDays instead.
  *
  * Own properties; signed totals (negative if negative diff):
+ * @todo: property-read int $totalYears
  * @property-read int $totalMonths
  * @property-read int $totalDays
  * @property-read int $totalHours
@@ -52,6 +53,9 @@ class TimeIntervalConstant implements ExplorableInterface
     use ExplorableBaseTrait;
     use ExplorableDumpTrait;
 
+    /**
+     * @see \SimpleComplex\Explorable\Explorable
+     */
     const EXPLORABLE_VISIBLE = [
         // \DateInterval.
         'y' => null,
@@ -64,6 +68,7 @@ class TimeIntervalConstant implements ExplorableInterface
         'invert' => null,
         'days' => null,
         // Own.
+//        'totalYears' => null,
         'totalMonths' => null,
         'totalDays' => null,
         'totalHours' => null,
@@ -71,11 +76,12 @@ class TimeIntervalConstant implements ExplorableInterface
         'totalSeconds' => null,
     ];
 
+    /**
+     * @see \SimpleComplex\Explorable\Explorable
+     */
     const EXPLORABLE_HIDDEN = [];
 
-    /**
-     * @var \DateInterval
-     */
+
     protected $dateInterval;
 
     /**
@@ -137,18 +143,34 @@ class TimeIntervalConstant implements ExplorableInterface
 
         if (in_array($key, $this->explorableCursor)) {
             switch ($key) {
+                /**
+                 * @todo: why not totalYears?
+                 */
+//                case 'totalYears':
+//                    //return (!$this->dateInterval->invert ? 1 : -1) * $this->dateInterval->y;
+//                    return (!$this->dateInterval->invert ? 1 : -1) * (int) $this->dateInterval->format('%y');
                 case 'totalMonths':
+                    /**
+                     * @todo: why use format() when y and m properties exist?
+                     */
                     return (!$this->dateInterval->invert ? 1 : -1)
                         * ((int) ($this->dateInterval->format('%y') * 12) + (int) $this->dateInterval->format('%m'));
                 case 'totalDays':
                 case 'totalHours':
                 case 'totalMinutes':
                 case 'totalSeconds':
+                    /**
+                     * @todo: why is totalMonths separated from the other proporties?
+                     * @todo: why shan't totalMonths be added, the way the rest of the properties are?
+                     */
                     $sign = !$this->dateInterval->invert ? 1 : -1;
                     $days = $this->dateInterval->days;
                     // \DateInterval::days is false unless created
                     // via \DateTime::diff().
                     if ($days === false) {
+                        /**
+                         * @that is no fix; format(%a) doesn't work if days is false; to throw exception instead.
+                         */
                         $days = (int) $this->dateInterval->format('%a');
                     }
                     if ($key == 'totalDays') {

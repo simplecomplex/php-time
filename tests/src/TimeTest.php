@@ -376,6 +376,7 @@ class TimeTest extends TestCase
         $mutated = $immutable->modifyDate(1);
         static::assertInstanceOf(TimeImmutable::class, $mutated);
 
+        static::assertSame(12, $immutable->diffConstant($mutated)->totalMonths);
 
     }
 }
