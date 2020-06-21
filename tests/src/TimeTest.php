@@ -226,6 +226,22 @@ class TimeTest extends TestCase
      */
     public function testDiffConstant()
     {
+        date_default_timezone_set(BootstrapTest::TIMEZONE);
+
+        $first = (new Time('2019-02-01'))->setToDateStart();
+        $last = (new Time('2019-03-01'))->setToDateStart();
+
+        $interval_mutable = $first->diff($last);
+        static::assertSame(0, $interval_mutable->h, '');
+        $interval_mutable->h = 2;
+        static::assertSame(2, $interval_mutable->h, '');
+
+        $interval_constant = $first->diffConstant($last);
+        static::assertSame(0, $interval_constant->h, '');
+        $this->expectException(\RuntimeException::class);
+        /** @noinspection Annotator */
+        $interval_constant->h = 2;
+
         /**
          * \SimpleComplex\Time\Time::diffConstant()
          *
