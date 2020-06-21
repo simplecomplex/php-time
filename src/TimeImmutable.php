@@ -13,17 +13,26 @@ namespace SimpleComplex\Time;
  * Immutable Time.
  *
  * Extends Time, not \DateTimeImmutable.
+ * Thus Time and TimeImmutable are both:
+ * - Time
+ * - \DateTime
+ * - \DateTimeInterface
  *
- * DateTimeImmutable extension would be achievable by using traits;
- * in Time and here.
- * DateTimeImmutable doesn't extend DateTime. And it's mutational
- * methods doesn't use new static().
- * @see https://www.php.net/manual/en/class.datetimeimmutable.php#123543
+ * \DateTime and \DateTimeImmutable are separate classes, but both implement
+ * \DateTimeInterface.
  *
  * @package SimpleComplex\Time
  */
 class TimeImmutable extends Time
 {
+    /**
+     * DateTimeImmutable extension would be achievable by using traits;
+     * in Time and here.
+     * If so, beware that DateTimeImmutable's mutational methods don't use
+     * new static(), thus all it's mutational methods must be overridden:
+     * @see https://www.php.net/manual/en/class.datetimeimmutable.php#123543
+     */
+
     /**
      * @var Time
      */

@@ -488,7 +488,7 @@ class Time extends \DateTime implements \JsonSerializable
     {
         /** @var Time $t */
         $t = null;
-        if (!($time instanceof \DateTime)) {
+        if (!($time instanceof \DateTimeInterface)) {
             $subject = $time;
             if (is_string($subject)) {
                 // Empty string is acceptable; \DateTime constructor
