@@ -91,6 +91,293 @@ class Time extends \DateTime implements \JsonSerializable
      */
     protected $frozen = false;
 
+
+    // Inherited methods.-------------------------------------------------------
+
+    /**
+     * Checks whether the new object's timezone matches local (default) timezone.
+     *
+     * Memorizes local (default) timezone first time called.
+     * @see Time::timezoneIsLocal()
+     *
+     * @param string $time
+     * @param \DateTimeZone $timezone
+     *
+     * @throws \Exception
+     *      Propagated; \DateTime constructor.
+     */
+    public function __construct($time = 'now', /*\DateTimeZone*/ $timezone = null)
+    {
+        parent::__construct($time, $timezone);
+        // Memorize local (default) timezone once and for all.
+        if (!static::$timezoneLocal) {
+            $time_default = new \DateTime();
+            static::$timezoneLocal = $tz = $time_default->getTimezone();
+            $tz_name = $tz->getName();
+            static::$timezoneLocalName = $tz_name == 'Z' ? 'UTC' : $tz_name;
+        }
+        // Flag whether this object's timezone is same as local (default).
+        $tz_name = $this->getTimezone()->getName();
+        if ($tz_name == 'Z') {
+            $tz_name = 'UTC';
+        }
+        $this->timezoneName = $tz_name;
+        $this->timezoneIsLocal = $tz_name == static::$timezoneLocalName;
+    }
+
+    /**
+     * @param \DateInterval $interval
+     *
+     * @return $this|\DateTime|Time
+     *
+     * @throws \RuntimeException
+     *      Frozen.
+     * @throws \Exception
+     *      Propagated; \DateTime::add().
+     */
+    public function add(/*\DateInterval*/ $interval) : \DateTime /*self invariant*/
+    {
+        // NB: Argument type hinting (\DateInterval $interval)
+        // would provoke E_WARNING when cloning.
+        // Catch 22: Specs say that native \DateTime method is type hinted,
+        // but warning when cloning says it isn't.
+
+        if ($this->frozen) {
+            throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
+        }
+        return parent::add($interval);
+    }
+
+    /**
+     * For formats, see:
+     * @see http://php.net/manual/en/function.date.php
+     *
+     * @param string $format
+     * @param string $time
+     * @param \DateTimeZone|null $timezone
+     *      Default: local timezone.
+     *
+     * @return static|Time
+     *
+     * @throws \Exception
+     *      Propagated; \DateTime::createFromFormat().
+     */
+    public static function createFromFormat($format, $time, /*\DateTimeZone*/ $timezone = null) : Time
+    {
+        // NB: Argument type hinting (\DateTimeZone $timezone)
+        // would provoke E_WARNING.
+        // Catch 22: Specs say that native method's arg $timezone is type hinted
+        // \DateTimeZone, but warning when calling says it isn't.
+
+        return static::createFromDateTime(
+            parent::createFromFormat($format, $time, $timezone)
+        );
+    }
+
+//    /**
+//     * PHP >=7.3
+//     *
+//     * @param \DateTimeImmutable $dateTimeImmutable
+//     * @return Time
+//     *
+//     * @throws \Exception
+//     */
+//    public static function createFromImmutable(\DateTimeImmutable $dateTimeImmutable) : Time
+//    {
+//        return new static($dateTimeImmutable->format('Y-m-d H:i:s.u'), $dateTimeImmutable->getTimezone());
+//    }
+
+    /**
+     * public static function getLastErrors() : array
+     * @see \DateTime::getLastErrors()
+     */
+
+    /**
+     * @param string $modify
+     *
+     * @return $this|\DateTime|Time
+     *
+     * @throws \RuntimeException
+     *      Frozen.
+     * @throws \Exception
+     *      Propagated; \DateTime::modify().
+     */
+    public function modify($modify) : \DateTime /*self invariant*/
+    {
+        if ($this->frozen) {
+            throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
+        }
+        return parent::modify($modify);
+    }
+
+    /**
+     * public static function __set_state(array $array) : DateTime
+     * @see \DateTime::__set_state()
+     */
+
+    /**
+     * @param int $year
+     * @param int $month
+     * @param int $day
+     *
+     * @return $this|\DateTime|Time
+     *
+     * @throws \RuntimeException
+     *      Frozen.
+     * @throws \Exception
+     *      Propagated; \DateTime::setDate().
+     */
+    public function setDate($year, $month, $day) : \DateTime /*self invariant*/
+    {
+        if ($this->frozen) {
+            throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
+        }
+        return parent::setDate($year, $month, $day);
+    }
+
+    /**
+     * @param int $year
+     * @param int $week
+     * @param int $day
+     *
+     * @return $this|\DateTime|Time
+     *
+     * @throws \RuntimeException
+     *      Frozen.
+     * @throws \Exception
+     *      Propagated; \DateTime::setIsoDate().
+     */
+    public function setISODate($year, $week, $day = 1) : \DateTime /*self invariant*/
+    {
+        if ($this->frozen) {
+            throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
+        }
+        return parent::setIsoDate($year, $week, $day);
+    }
+
+    /**
+     * PHP 7.0 support for arg $microseconds, though ignored when PHP <7.1.
+     *
+     * Fairly safe to ignore because \DateInterval PHP <7.1 doesn't record
+     * microseconds difference.
+     *
+     * @param int $hour
+     * @param int $minute
+     * @param int $second
+     * @param int $microseconds
+     *      Ignored when PHP 7.0 (<7.1).
+     *
+     * @return $this|\DateTime|Time
+     *
+     * @throws \RuntimeException
+     *      Frozen.
+     * @throws \Exception
+     *      Propagated; \DateTime::setTime()
+     */
+    public function setTime($hour, $minute, $second = 0, $microseconds = 0) : \DateTime /*self invariant*/
+    {
+        if ($this->frozen) {
+            throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
+        }
+        if (PHP_MAJOR_VERSION == 7 && !PHP_MINOR_VERSION) {
+            return parent::setTime($hour, $minute, $second);
+        }
+        return parent::setTime($hour, $minute, $second, $microseconds);
+    }
+
+    /**
+     * @param int $unixtimestamp
+     *
+     * @return $this|\DateTime|Time
+     *
+     * @throws \RuntimeException
+     *      Frozen.
+     * @throws \Exception
+     *      Propagated; \DateTime::setTimestamp().
+     */
+    public function setTimestamp($unixtimestamp) : \DateTime /*self invariant*/
+    {
+        if ($this->frozen) {
+            throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
+        }
+        return parent::setTimestamp($unixtimestamp);
+    }
+
+    /**
+     * Checks whether the object's new timezone matches local (default) timezone.
+     * @see Time::timezoneIsLocal()
+     *
+     * @param \DateTimeZone $timezone
+     *
+     * @return $this|\DateTime
+     *
+     * @throws \RuntimeException
+     *      Frozen.
+     * @throws \Exception
+     *      Propagated; \DateTime::setTimezone().
+     */
+    public function setTimezone($timezone) : \DateTime /*self invariant*/
+    {
+        if ($this->frozen) {
+            throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
+        }
+        parent::setTimezone($timezone);
+        // Flag whether this object's timezone is same as local (default).
+        $tz_name = $this->getTimezone()->getName();
+        if ($tz_name == 'Z') {
+            $tz_name = 'UTC';
+        }
+        $this->timezoneName = $tz_name;
+        $this->timezoneIsLocal = $tz_name == static::$timezoneLocalName;
+        return $this;
+    }
+
+    /**
+     * @param \DateInterval $interval
+     *
+     * @return $this|\DateTime|Time
+     *
+     * @throws \RuntimeException
+     *      Frozen.
+     * @throws \Exception
+     *      Propagated; \DateTime::sub().
+     */
+    public function sub(/*\DateInterval*/ $interval) : \DateTime /*self invariant*/
+    {
+        // NB: Argument type hinting (\DateInterval $interval)
+        // would provoke E_WARNING when cloning.
+        // Catch 22: Specs say that native \DateTime method is type hinted,
+        // but warning when cloning says it isn't.
+
+        if ($this->frozen) {
+            throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
+        }
+        return parent::sub($interval);
+    }
+
+    /**
+     * public function diff(\DateTimeInterface $datetime2, bool $absolute = false) : DateInterval
+     * @see \DateTime::diff()
+     *
+     * public function format(string $format) : string
+     * @see \DateTime::format()
+     *
+     * public function getOffset() : int
+     * @see \DateTime::getOffset()
+     *
+     * public function getTimestamp() : int
+     * @see \DateTime::getTimestamp()
+     *
+     * public function getTimezone() : DateTimeZone
+     * @see \DateTime::getTimezone()
+     *
+     * public function __wakeup()
+     * @see \DateTime::__wakeup()
+     */
+
+
+    // Own methods.-------------------------------------------------------------
+
     /**
      * Get the local (default) timezone which gets memorized first time
      * the Time constructor gets called.
@@ -157,32 +444,6 @@ class Time extends \DateTime implements \JsonSerializable
             return false;
         }
         return true;
-    }
-
-    /**
-     * For formats, see:
-     * @see http://php.net/manual/en/function.date.php
-     *
-     * @param string $format
-     * @param string $time
-     * @param \DateTimeZone|null $timezone
-     *      Default: local timezone.
-     *
-     * @return static|Time
-     *
-     * @throws \Exception
-     *      Propagated; \DateTime::createFromFormat().
-     */
-    public static function createFromFormat($format, $time, /*\DateTimeZone*/ $timezone = null) : Time
-    {
-        // NB: Argument type hinting (\DateTimeZone $timezone)
-        // would provoke E_WARNING.
-        // Catch 22: Specs say that native method's arg $timezone is type hinted
-        // \DateTimeZone, but warning when calling says it isn't.
-
-        return static::createFromDateTime(
-            parent::createFromFormat($format, $time, $timezone)
-        );
     }
 
     /**
@@ -284,37 +545,6 @@ class Time extends \DateTime implements \JsonSerializable
     }
 
     /**
-     * Checks whether the new object's timezone matches local (default) timezone.
-     *
-     * Memorizes local (default) timezone first time called.
-     * @see Time::timezoneIsLocal()
-     *
-     * @param string $time
-     * @param \DateTimeZone $timezone
-     *
-     * @throws \Exception
-     *      Propagated; \DateTime constructor.
-     */
-    public function __construct($time = 'now', /*\DateTimeZone*/ $timezone = null)
-    {
-        parent::__construct($time, $timezone);
-        // Memorize local (default) timezone once and for all.
-        if (!static::$timezoneLocal) {
-            $time_default = new \DateTime();
-            static::$timezoneLocal = $tz = $time_default->getTimezone();
-            $tz_name = $tz->getName();
-            static::$timezoneLocalName = $tz_name == 'Z' ? 'UTC' : $tz_name;
-        }
-        // Flag whether this object's timezone is same as local (default).
-        $tz_name = $this->getTimezone()->getName();
-        if ($tz_name == 'Z') {
-            $tz_name = 'UTC';
-        }
-        $this->timezoneName = $tz_name;
-        $this->timezoneIsLocal = $tz_name == static::$timezoneLocalName;
-    }
-
-    /**
      * The clone will be unfrozen.
      *
      * Time is Freezable.
@@ -349,35 +579,6 @@ class Time extends \DateTime implements \JsonSerializable
     public function isFrozen() : bool
     {
         return $this->frozen;
-    }
-
-    /**
-     * Checks whether the object's new timezone matches local (default) timezone.
-     * @see Time::timezoneIsLocal()
-     *
-     * @param \DateTimeZone $timezone
-     *
-     * @return $this|\DateTime
-     *
-     * @throws \RuntimeException
-     *      Frozen.
-     * @throws \Exception
-     *      Propagated; \DateTime::setTimezone().
-     */
-    public function setTimezone($timezone) : \DateTime /*self invariant*/
-    {
-        if ($this->frozen) {
-            throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
-        }
-        parent::setTimezone($timezone);
-        // Flag whether this object's timezone is same as local (default).
-        $tz_name = $this->getTimezone()->getName();
-        if ($tz_name == 'Z') {
-            $tz_name = 'UTC';
-        }
-        $this->timezoneName = $tz_name;
-        $this->timezoneIsLocal = $tz_name == static::$timezoneLocalName;
-        return $this;
     }
 
     /**
@@ -555,24 +756,6 @@ class Time extends \DateTime implements \JsonSerializable
     }
 
     /**
-     * @param string $modify
-     *
-     * @return $this|\DateTime|Time
-     *
-     * @throws \RuntimeException
-     *      Frozen.
-     * @throws \Exception
-     *      Propagated; \DateTime::modify().
-     */
-    public function modify($modify) : \DateTime /*self invariant*/
-    {
-        if ($this->frozen) {
-            throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
-        }
-        return parent::modify($modify);
-    }
-
-    /**
      * Unlike \Datetime::modify() this throws exception on failure.
      *
      * \Datetime::modify() emits warning and returns false on failure.
@@ -598,140 +781,6 @@ class Time extends \DateTime implements \JsonSerializable
             return $this;
         }
         throw new \InvalidArgumentException('Arg modify[' . $modify . '] is invalid.');
-    }
-
-    /**
-     * @param \DateInterval $interval
-     *
-     * @return $this|\DateTime|Time
-     *
-     * @throws \RuntimeException
-     *      Frozen.
-     * @throws \Exception
-     *      Propagated; \DateTime::add().
-     */
-    public function add(/*\DateInterval*/ $interval) : \DateTime /*self invariant*/
-    {
-        // NB: Argument type hinting (\DateInterval $interval)
-        // would provoke E_WARNING when cloning.
-        // Catch 22: Specs say that native \DateTime method is type hinted,
-        // but warning when cloning says it isn't.
-
-        if ($this->frozen) {
-            throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
-        }
-        return parent::add($interval);
-    }
-
-    /**
-     * @param \DateInterval $interval
-     *
-     * @return $this|\DateTime|Time
-     *
-     * @throws \RuntimeException
-     *      Frozen.
-     * @throws \Exception
-     *      Propagated; \DateTime::sub().
-     */
-    public function sub(/*\DateInterval*/ $interval) : \DateTime /*self invariant*/
-    {
-        // NB: Argument type hinting (\DateInterval $interval)
-        // would provoke E_WARNING when cloning.
-        // Catch 22: Specs say that native \DateTime method is type hinted,
-        // but warning when cloning says it isn't.
-
-        if ($this->frozen) {
-            throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
-        }
-        return parent::sub($interval);
-    }
-
-    /**
-     * @param int $year
-     * @param int $month
-     * @param int $day
-     *
-     * @return $this|\DateTime|Time
-     *
-     * @throws \RuntimeException
-     *      Frozen.
-     * @throws \Exception
-     *      Propagated; \DateTime::setDate().
-     */
-    public function setDate($year, $month, $day) : \DateTime /*self invariant*/
-    {
-        if ($this->frozen) {
-            throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
-        }
-        return parent::setDate($year, $month, $day);
-    }
-
-    /**
-     * PHP 7.0 support for arg $microseconds, though ignored when PHP <7.1.
-     *
-     * Fairly safe to ignore because \DateInterval PHP <7.1 doesn't record
-     * microseconds difference.
-     *
-     * @param int $hour
-     * @param int $minute
-     * @param int $second
-     * @param int $microseconds
-     *      Ignored when PHP 7.0 (<7.1).
-     *
-     * @return $this|\DateTime|Time
-     *
-     * @throws \RuntimeException
-     *      Frozen.
-     * @throws \Exception
-     *      Propagated; \DateTime::setTime()
-     */
-    public function setTime($hour, $minute, $second = 0, $microseconds = 0) : \DateTime /*self invariant*/
-    {
-        if ($this->frozen) {
-            throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
-        }
-        if (PHP_MAJOR_VERSION == 7 && !PHP_MINOR_VERSION) {
-            return parent::setTime($hour, $minute, $second);
-        }
-        return parent::setTime($hour, $minute, $second, $microseconds);
-    }
-
-    /**
-     * @param int $year
-     * @param int $week
-     * @param int $day
-     *
-     * @return $this|\DateTime|Time
-     *
-     * @throws \RuntimeException
-     *      Frozen.
-     * @throws \Exception
-     *      Propagated; \DateTime::setIsoDate().
-     */
-    public function setISODate($year, $week, $day = 1) : \DateTime /*self invariant*/
-    {
-        if ($this->frozen) {
-            throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
-        }
-        return parent::setIsoDate($year, $week, $day);
-    }
-
-    /**
-     * @param int $unixtimestamp
-     *
-     * @return $this|\DateTime|Time
-     *
-     * @throws \RuntimeException
-     *      Frozen.
-     * @throws \Exception
-     *      Propagated; \DateTime::setTimestamp().
-     */
-    public function setTimestamp($unixtimestamp) : \DateTime /*self invariant*/
-    {
-        if ($this->frozen) {
-            throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
-        }
-        return parent::setTimestamp($unixtimestamp);
     }
 
     /**
@@ -1424,7 +1473,7 @@ class Time extends \DateTime implements \JsonSerializable
      *
      * @return string
      */
-    public static function getType($subject)
+    protected static function getType($subject)
     {
         if (!is_object($subject)) {
             $type = gettype($subject);
