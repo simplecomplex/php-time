@@ -14,7 +14,11 @@ namespace SimpleComplex\Time;
  *
  * Extends Time, not \DateTimeImmutable.
  *
- * @todo: DateTimeImmutable extension is achievable by using traits; in Time and here.
+ * DateTimeImmutable extension would be achievable by using traits;
+ * in Time and here.
+ * DateTimeImmutable doesn't extend DateTime. And it's mutational
+ * methods doesn't use new static().
+ * @see https://www.php.net/manual/en/class.datetimeimmutable.php#123543
  *
  * @package SimpleComplex\Time
  */
@@ -29,15 +33,39 @@ class TimeImmutable extends Time
     // Inherited methods.-------------------------------------------------------
 
     /**
-     * {@inheritDoc}
+     * Checks whether the new object's timezone matches local (default) timezone.
+     *
+     * Memorizes local (default) timezone first time called.
+     * @see Time::timezoneIsLocal()
+     *
+     * @param string $time
+     * @param \DateTimeZone|null $timezone
+     * @param Time|null $clonedMutableTime
+     *      Time: all other args ignored, and circumvents all checks.
+     *
+     * @throws \Exception
+     *      Propagated; \DateTime constructor.
      */
-    public function __construct($time = 'now', /*\DateTimeZone*/ $timezone = null)
+    public function __construct($time = 'now', /*\DateTimeZone*/ $timezone = null, Time $clonedMutableTime = null)
     {
-        /**
-         * @todo: Very unfortunate that we have to create two objects
-         */
-        parent::__construct();
-        $this->timeInner = new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone());
+        if ($clonedMutableTime) {
+            $iso = $clonedMutableTime->format('Y-m-d H:i:s.u');
+            $zone = $clonedMutableTime->getTimezone();
+
+            parent::__construct($iso, $zone);
+
+            if ($clonedMutableTime instanceof TimeImmutable) {
+                $this->timeInner = new Time($iso, $zone);
+            }
+            else {
+                // Faster than construction.
+                $this->timeInner = $clonedMutableTime;
+            }
+        }
+        else {
+            parent::__construct($time, $timezone);
+            $this->timeInner = $mutableTime ?? new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone());
+        }
     }
 
     /**
@@ -46,7 +74,8 @@ class TimeImmutable extends Time
     public function add(/*\DateInterval*/ $interval) : \DateTime /*self invariant*/
     {
         $t = (clone $this->timeInner)->add($interval);
-        return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        //return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        return new static('', null, $t);
     }
 
     /**
@@ -61,6 +90,7 @@ class TimeImmutable extends Time
      */
     public static function createFromMutable(\DateTime $dateTime) : Time
     {
+        // Time::createFromDateTime() uses new static(),
         return parent::createFromDateTime($dateTime);
     }
 
@@ -75,7 +105,8 @@ class TimeImmutable extends Time
     public function modify($modify) : \DateTime /*self invariant*/
     {
         $t = (clone $this->timeInner)->modify($modify);
-        return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        //return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        return new static('', null, $t);
     }
 
     /**
@@ -89,7 +120,8 @@ class TimeImmutable extends Time
     public function setDate($year, $month, $day) : \DateTime /*self invariant*/
     {
         $t = (clone $this->timeInner)->setDate($year, $month, $day);
-        return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        //return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        return new static('', null, $t);
     }
 
     /**
@@ -98,7 +130,8 @@ class TimeImmutable extends Time
     public function setISODate($year, $week, $day = 1) : \DateTime /*self invariant*/
     {
         $t = (clone $this->timeInner)->setIsoDate($year, $week, $day);
-        return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        //return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        return new static('', null, $t);
     }
 
     /**
@@ -107,7 +140,8 @@ class TimeImmutable extends Time
     public function setTime($hour, $minute, $second = 0, $microseconds = 0) : \DateTime /*self invariant*/
     {
         $t = (clone $this->timeInner)->setTime($hour, $minute, $second, $microseconds);
-        return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        //return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        return new static('', null, $t);
     }
 
     /**
@@ -116,7 +150,8 @@ class TimeImmutable extends Time
     public function setTimestamp($unixtimestamp) : \DateTime /*self invariant*/
     {
         $t = (clone $this->timeInner)->setTimestamp($unixtimestamp);
-        return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        //return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        return new static('', null, $t);
     }
 
     /**
@@ -125,7 +160,8 @@ class TimeImmutable extends Time
     public function setTimezone($timezone) : \DateTime /*self invariant*/
     {
         $t = (clone $this->timeInner)->setTimezone($timezone);
-        return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        //return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        return new static('', null, $t);
     }
 
     /**
@@ -139,7 +175,8 @@ class TimeImmutable extends Time
         // but warning when cloning says it isn't.
 
         $t = (clone $this->timeInner)->sub($interval);
-        return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        //return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        return new static('', null, $t);
     }
 
 
@@ -160,9 +197,12 @@ class TimeImmutable extends Time
             }
             if (!$keepForeignTimezone && !$time->timezoneIsLocal()) {
                 $t = (clone $time)->setTimezoneToLocal();
-                return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+                //return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+                return new static('', null, $t);
             }
-            return new static($time->format('Y-m-d H:i:s.u'), $time->getTimezone());
+            //return new static($time->format('Y-m-d H:i:s.u'), $time->getTimezone());
+            $t = (clone $time);
+            return new static('', null, $t);
         }
         return parent::resolve($time, $keepForeignTimezone);
     }
@@ -173,7 +213,21 @@ class TimeImmutable extends Time
     public function setTimezoneToLocal() : \DateTime /*self invariant*/
     {
         $t = (clone $this->timeInner)->setTimezoneToLocal();
-        return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        //return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        return new static('', null, $t);
+    }
+
+    /**
+     * Get as Time.
+     *
+     * @return Time
+     *
+     * @throws \Exception
+     *      Propagated; \DateTime constructor.
+     */
+    public function toTime() : Time
+    {
+        return clone $this->timeInner;
     }
 
     /**
@@ -182,7 +236,8 @@ class TimeImmutable extends Time
     public function modifySafely(string $modify) : Time
     {
         $t = (clone $this->timeInner)->modifySafely($modify);
-        return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        //return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        return new static('', null, $t);
     }
 
     /**
@@ -191,7 +246,8 @@ class TimeImmutable extends Time
     public function setToDateStart() : Time
     {
         $t = (clone $this->timeInner)->setToDateStart();
-        return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        //return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        return new static('', null, $t);
     }
 
     /**
@@ -200,7 +256,8 @@ class TimeImmutable extends Time
     public function setToFirstDayOfMonth(int $month = null) : Time
     {
         $t = (clone $this->timeInner)->setToFirstDayOfMonth();
-        return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        //return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        return new static('', null, $t);
     }
 
     /**
@@ -209,7 +266,8 @@ class TimeImmutable extends Time
     public function setToLastDayOfMonth(int $month = null) : Time
     {
         $t = (clone $this->timeInner)->setToLastDayOfMonth();
-        return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        //return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        return new static('', null, $t);
     }
 
     /**
@@ -218,7 +276,8 @@ class TimeImmutable extends Time
     public function modifyDate(int $years, int $months = 0, int $days = 0) : Time
     {
         $t = (clone $this->timeInner)->modifyDate($years, $months = 0, $days);
-        return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        //return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        return new static('', null, $t);
     }
 
     /**
@@ -227,15 +286,20 @@ class TimeImmutable extends Time
     public function modifyTime(int $hours, int $minutes = 0, int $seconds = 0, int $microseconds = 0) : Time
     {
         $t = (clone $this->timeInner)->modifyTime($hours, $minutes = 0, $seconds, $microseconds);
-        return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        //return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        return new static('', null, $t);
     }
 
     /**
      * {@inheritDoc}
+     *
+     * @throws \Exception
+     *      Propagated; \DateTime constructor.
      */
     public function setJsonSerializePrecision(string $precision) : Time
     {
         $t = (clone $this->timeInner)->setJsonSerializePrecision($precision);
-        return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        //return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        return new static('', null, $t);
     }
 }

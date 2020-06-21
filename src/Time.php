@@ -101,7 +101,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @see Time::timezoneIsLocal()
      *
      * @param string $time
-     * @param \DateTimeZone $timezone
+     * @param \DateTimeZone|null $timezone
      *
      * @throws \Exception
      *      Propagated; \DateTime constructor.

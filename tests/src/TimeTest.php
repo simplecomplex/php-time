@@ -12,6 +12,7 @@ namespace SimpleComplex\Tests\Time;
 use PHPUnit\Framework\TestCase;
 
 use SimpleComplex\Time\Time;
+use SimpleComplex\Time\TimeImmutable;
 
 /**
  * @code
@@ -240,7 +241,7 @@ class TimeTest extends TestCase
         static::assertSame(0, $interval_constant->h, '');
         $this->expectException(\RuntimeException::class);
         /** @noinspection Annotator */
-        $interval_constant->h = 2;
+        $interval_constant->{'h'} = 2;
 
         /**
          * \SimpleComplex\Time\Time::diffConstant()
@@ -362,5 +363,19 @@ class TimeTest extends TestCase
 
         static::assertTrue(abs(1577880000400000 - $floor->toUnixMicroseconds()) < 10, 'floorable microseconds');
         static::assertTrue(abs(1577880000900000 - $ceil->toUnixMicroseconds()) < 10, 'ceilable microseconds');
+    }
+
+
+    public function testImmutable()
+    {
+        date_default_timezone_set(BootstrapTest::TIMEZONE);
+
+        $immutable = new TimeImmutable();
+        static::assertInstanceOf(TimeImmutable::class, $immutable);
+
+        $mutated = $immutable->modifyDate(1);
+        static::assertInstanceOf(TimeImmutable::class, $mutated);
+
+
     }
 }
