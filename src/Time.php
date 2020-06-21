@@ -256,16 +256,10 @@ class Time extends \DateTime implements \JsonSerializable
     }
 
     /**
-     * PHP 7.0 support for arg $microseconds, though ignored when PHP <7.1.
-     *
-     * Fairly safe to ignore because \DateInterval PHP <7.1 doesn't record
-     * microseconds difference.
-     *
      * @param int $hour
      * @param int $minute
      * @param int $second
      * @param int $microseconds
-     *      Ignored when PHP 7.0 (<7.1).
      *
      * @return $this|\DateTime|Time
      *
@@ -279,9 +273,10 @@ class Time extends \DateTime implements \JsonSerializable
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
         }
-        if (PHP_MAJOR_VERSION == 7 && !PHP_MINOR_VERSION) {
-            return parent::setTime($hour, $minute, $second);
-        }
+        // PHP 7.0 support for arg $microseconds, though ignored when PHP <7.1.
+        //if (PHP_MAJOR_VERSION == 7 && !PHP_MINOR_VERSION) {
+        //    return parent::setTime($hour, $minute, $second);
+        //}
         return parent::setTime($hour, $minute, $second, $microseconds);
     }
 
