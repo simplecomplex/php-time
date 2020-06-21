@@ -483,12 +483,11 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \TypeError
      * @throws \Exception
      *      Propagated; \DateTime constructor, \DateTime::setTimestamp().
-     *
      */
     public static function resolve($time, $keepForeignTimezone = false) : Time
     {
-        /** @var Time $o */
-        $o = null;
+        /** @var Time $t */
+        $t = null;
         if (!($time instanceof \DateTime)) {
             $subject = $time;
             if (is_string($subject)) {
@@ -509,10 +508,10 @@ class Time extends \DateTime implements \JsonSerializable
                 ) {
                     $subject = str_replace(' ', '+', $subject);
                 }
-                $o = new static($subject);
+                $t = new static($subject);
             }
             elseif (is_int($subject)) {
-                $o = (new static())->setTimestamp($subject);
+                $t = (new static())->setTimestamp($subject);
             }
             else {
                 throw new \TypeError(
@@ -521,22 +520,20 @@ class Time extends \DateTime implements \JsonSerializable
             }
         }
         // Is \DateTime.
+        elseif ($time instanceof Time) {
+            if (!$keepForeignTimezone && !$time->timezoneIsLocal()) {
+                return (clone $time)->setTimezoneToLocal();
+            }
+            return $time;
+        }
         else {
-            if ($time instanceof Time) {
-                if (!$keepForeignTimezone && !$time->timezoneIsLocal()) {
-                    return (clone $time)->setTimezoneToLocal();
-                }
-                return $time;
-            }
-            else {
-                $o = Time::createFromDateTime($time);
-            }
+            $t = static::createFromDateTime($time);
         }
 
         if (!$keepForeignTimezone) {
-            return $o->setTimezoneToLocal();
+            return $t->setTimezoneToLocal();
         }
-        return $o;
+        return $t;
     }
 
     /**
