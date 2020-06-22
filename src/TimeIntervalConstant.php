@@ -14,18 +14,16 @@ use SimpleComplex\Explorable\ExplorableBaseTrait;
 use SimpleComplex\Explorable\ExplorableDumpTrait;
 
 /**
- * Wrapped native DateInterval plus totalling props for months thru seconds.
+ * Wrapped native DateInterval plus totalling props for years thru seconds.
  *
  * @see Time::diffConstant()
  *
- * Constant, not only immutable; attempting to set a property spells exception.
+ * The 'Constant' part of this class' name is stupid, since native \DateInterval
+ * is constant too. Didn't realize that DateInterval's 'public' properties
+ * were readonly (and php.net documentation doesn't give any such hint either).
  *
- * All DateInterval methods inaccessible (like static createFromDateString()),
- * except for format(); which supposedly doesn't alter the DateInterval.
+ * All DateInterval methods inaccessible except for format().
  * @see TimeIntervalConstant::format()
- *
- * For mutable representation, get clone of inner DateInterval.
- * @see TimeIntervalConstant::getMutable()
  *
  * (inner) \DateInterval properties:
  * @property-read int $y  Years.
@@ -36,7 +34,7 @@ use SimpleComplex\Explorable\ExplorableDumpTrait;
  * @property-read int $s  Seconds.
  * @property-read int $f  Microseconds.
  * @property-read int $invert  Zero if positive; one if negative.
- * @property-read int|bool $days  Use $totalDays instead.
+ * @property-read int $days  Use $totalDays instead.
  *
  * Own properties; signed totals (negative if negative diff):
  * @property-read int $totalYears
@@ -50,6 +48,22 @@ use SimpleComplex\Explorable\ExplorableDumpTrait;
  */
 class TimeIntervalConstant implements ExplorableInterface
 {
+    /**
+     * Why not simply extend \DateInterval?
+     * Because the (total) $days property would become false, since the instance
+     * couldn't be created directly via \DateTimeInterface::diff().
+     * And us knowing the appropriate value of $days is no help here, because
+     * the days property cannot be overwritten (not truly protected).
+     *
+     * So it's a choice between two evils:
+     * i. A \DateInterval extension who deceptively looks right (instanceof),
+     * but somewhat crippled (days:false).
+     * ii. A mock DateInterval which works right,
+     * but may not be accepted (not instanceof).
+     *
+     * Not sure if this is the right choice.
+     */
+
     use ExplorableBaseTrait;
     use ExplorableDumpTrait;
 
@@ -81,17 +95,38 @@ class TimeIntervalConstant implements ExplorableInterface
      */
     const EXPLORABLE_HIDDEN = [];
 
-
+    /**
+     * @var \DateInterval
+     */
     protected $dateInterval;
 
     /**
      * @see Time::diffConstant()
      *
      * @param \DateInterval $interval
+     *
+     * @throws \InvalidArgumentException
+     *      Arg $interval not a \DateInterval constructed via
+     *      \DateTimeInterface::diff().
      */
     public function __construct(\DateInterval $interval)
     {
+        if ($interval->days === false) {
+            throw new \InvalidArgumentException(
+                'Arg $interval is not a \DateInterval constructed via \DateTimeInterface::diff().'
+            );
+        }
         $this->dateInterval = $interval;
+    }
+
+    /**
+     * @deprecated Use getDateInterval() instead.
+     *
+     * @return \DateInterval
+     */
+    public function getMutable() : \DateInterval
+    {
+        return clone $this->dateInterval;
     }
 
     /**
@@ -99,7 +134,7 @@ class TimeIntervalConstant implements ExplorableInterface
      *
      * @return \DateInterval
      */
-    public function getMutable() : \DateInterval
+    public function getDateInterval() : \DateInterval
     {
         return clone $this->dateInterval;
     }
@@ -124,16 +159,15 @@ class TimeIntervalConstant implements ExplorableInterface
      * Exposes own properties and proxies to inner DateInterval's properties.
      * @see \DateInterval
      *
-     * Doesn't fix DateInterval::$days; do use TimeIntervalConstant::$totalDays.
-     * DateInterval::$days is false when the DateInterval wasn't created
-     * via DateTimeInterface::diff().
-     *
      * @param string $key
      *
      * @return mixed
      *
      * @throws \OutOfBoundsException
      *      If no such instance property.
+     * @throws \LogicException
+     *      Internal \DateInterval is not a constructed
+     *      via \DateTimeInterface::diff().
      */
     public function __get(string $key)
     {
@@ -146,12 +180,11 @@ class TimeIntervalConstant implements ExplorableInterface
             switch ($key) {
                 case 'totalYears':
                 case 'totalMonths':
-                    $years = $this->dateInterval->y;
+                    $years = $sign * $this->dateInterval->y;
                     if ($key == 'totalYears') {
-                        return !$years ? 0 : ($sign * $years);
+                        return $years;
                     }
-                    $months = ($years * 12) + $this->dateInterval->m;
-                    return !$months ? 0 : ($sign * $months);
+                    return ($years * 12) + ($sign * $this->dateInterval->m);
                 case 'totalDays':
                 case 'totalHours':
                 case 'totalMinutes':
@@ -168,26 +201,25 @@ class TimeIntervalConstant implements ExplorableInterface
                      */
                     $days = $this->dateInterval->days;
                     // \DateInterval::days is false unless created
-                    // via \DateTime::diff().
+                    // via \DateTime|\DateTimeImmutable::diff().
                     if ($days === false) {
-                        /**
-                         * @todo: that is no fix; format(%a) doesn't work if days is false; to throw exception instead.
-                         */
-                        $days = (int) $this->dateInterval->format('%a');
+                        throw new \LogicException(
+                            'Internal \DateInterval is not a constructed via \DateTimeInterface::diff().'
+                        );
                     }
+                    $days *= $sign;
                     if ($key == 'totalDays') {
-                        return !$days ? 0 : ($sign * $days);
+                        return $days;
                     }
-                    $hours = ($days * 24) + $this->dateInterval->h;
+                    $hours = ($days * 24) + ($sign * $this->dateInterval->h);
                     if ($key == 'totalHours') {
-                        return !$hours ? 0 : ($sign * $hours);
+                        return $hours;
                     }
-                    $minutes = ($hours * 60) + $this->dateInterval->i;
+                    $minutes = ($hours * 60) + ($sign * $this->dateInterval->i);
                     if ($key == 'totalMinutes') {
-                        return !$minutes ? 0 : ($sign * $minutes);
+                        return $minutes;
                     }
-                    $seconds = ($minutes * 60) + $this->dateInterval->s;
-                    return !$seconds ? 0 : ($sign * $seconds);
+                    return ($minutes * 60) + ($sign * $this->dateInterval->s);
             }
             return $this->dateInterval->{$key};
         }
@@ -218,6 +250,8 @@ class TimeIntervalConstant implements ExplorableInterface
     }
 
     /**
+     * \DateInterval instance methods not proxied by this class.
+     *
      * @param string $key
      * @param $arguments
      *
@@ -235,6 +269,8 @@ class TimeIntervalConstant implements ExplorableInterface
     }
 
     /**
+     * \DateInterval static methods not proxied by this class.
+     *
      * @param string $key
      * @param $arguments
      *
@@ -244,9 +280,9 @@ class TimeIntervalConstant implements ExplorableInterface
     public static function __callStatic(string $key, $arguments)
     {
         if ($key == 'createFromDateString') {
-            // @todo: wrong, but not for that reason; would have $days:false because not created via DateTime::diff().
             throw new \RuntimeException(
-                get_called_class() . ' method[' . $key . '] is forbidden because it would mutate the interval.'
+                get_called_class() . '::' . $key
+                . '() is forbidden because the internal \DateInterval must be created via \DateTimeInterface::diff().'
             );
         }
         throw new \RuntimeException(

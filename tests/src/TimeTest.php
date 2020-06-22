@@ -380,57 +380,86 @@ class TimeTest extends TestCase
 
     }
 
-    public function testTimeInterval()
+    public function testTimeIntervalConstant()
     {
-        date_default_timezone_set(BootstrapTest::TIMEZONE);
 
-        $first = new Time('2000-01-01 00:00:00');
-        $last = new Time('2020-06-15 12:37:59.555555');
+        $signs = [
+            'positive' => 1,
+            'negative' => -1,
+        ];
 
-        $interval_positive = $first->diffConstant($last);
-        static::assertSame(20, $interval_positive->y);
-        static::assertSame(20, $interval_positive->totalYears);
+        $zones = [
+            'UTC' => 'UTC',
+            'local' => BootstrapTest::TIMEZONE,
+        ];
 
-        $interval_negative = $last->diffConstant($first);
-        \SimpleComplex\Inspect\Inspect::getInstance()->variable($interval_negative)->log();
-        /*
-        .  y: (integer) 20
-        .  m: (integer) 5
-        .  d: (integer) 14
-        .  h: (integer) 12
-        .  i: (integer) 59
-        .  s: (integer) 59
-        .  f: (float) 0.555555
-        .  invert: (integer) 1
-        .  days: (integer) 7471
-        .  totalYears: (integer) -20
-        .  totalMonths: (integer) -245
-        .  totalDays: (integer) -7471
-        .  totalHours: (integer) -179316
-        .  totalMinutes: (integer) -10758997
-        .  totalSeconds: (integer) -645539879
-         */
-        static::assertSame(20, $interval_negative->y);
-        static::assertSame(5, $interval_negative->m);
-        static::assertSame(14, $interval_negative->d);
-        static::assertSame(12, $interval_negative->h);
-        static::assertSame(37, $interval_negative->i);
-        static::assertSame(59, $interval_negative->s);
-        static::assertSame(0.555555, $interval_negative->f);
-        static::assertSame(7471, $interval_negative->days);
-        static::assertSame(-20, $interval_negative->totalYears);
-        static::assertSame(-245, $interval_negative->totalMonths);
-        static::assertSame(-7471, $interval_negative->totalDays);
-        static::assertSame(-179316, $interval_negative->totalHours);
-        static::assertSame(-10758997, $interval_negative->totalMinutes);
-        static::assertSame(-645539879, $interval_negative->totalSeconds);
-        static::assertSame(-645539879, $first->getTimestamp() - $last->getTimestamp());
+        foreach ($signs as $sign_alias => $sign) {
+            foreach ($zones as $zone_alias => $zone) {
+                date_default_timezone_set($zone);
 
+                $first = new Time('2000-01-01 00:00:00');
+                $last = new Time('2020-06-15 12:37:59.555555');
 
+                if ($sign == 1) {
+                    $diff = $first->diffConstant($last);
+                } else {
+                    $diff = $last->diffConstant($first);
+                }
+                //\SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log();
+                /*
+                .  y: (integer) 20
+                .  m: (integer) 5
+                .  d: (integer) 14
+                .  h: (integer) 12
+                .  i: (integer) 59
+                .  s: (integer) 59
+                .  f: (float) 0.555555
+                .  invert: (integer) 1
+                .  days: (integer) 7471
+                .  totalYears: (integer) -20
+                .  totalMonths: (integer) -245
+                .  totalDays: (integer) -7471
+                .  totalHours: (integer) -179316
+                .  totalMinutes: (integer) -10758997
+                .  totalSeconds: (integer) -645539879
+                 */
+                static::assertSame(20, $diff->y, $sign_alias . ' (' . $zone_alias . ') y');
+                static::assertSame(5, $diff->m, $sign_alias . ' (' . $zone_alias . ') m');
+                static::assertSame(14, $diff->d, $sign_alias . ' (' . $zone_alias . ') d');
+                static::assertSame(12, $diff->h, $sign_alias . ' (' . $zone_alias . ') h');
+                static::assertSame(37, $diff->i, $sign_alias . ' (' . $zone_alias . ') i');
+                static::assertSame(59, $diff->s, $sign_alias . ' (' . $zone_alias . ') s');
+                static::assertSame(0.555555, $diff->f, $sign_alias . ' (' . $zone_alias . ') f');
+                static::assertSame(7471, $diff->days, $sign_alias . ' (' . $zone_alias . ') days');
+                static::assertSame($sign * 20, $diff->totalYears, $sign_alias . ' (' . $zone_alias . ') totalYears');
+                static::assertSame($sign * 245, $diff->totalMonths, $sign_alias . ' (' . $zone_alias . ') totalMonths');
+                static::assertSame($sign * 7471, $diff->totalDays, $sign_alias . ' (' . $zone_alias . ') totalDays');
+                static::assertSame($sign * 179316, $diff->totalHours, $sign_alias . ' (' . $zone_alias . ') totalHours');
+                static::assertSame($sign * 10758997, $diff->totalMinutes, $sign_alias . ' (' . $zone_alias . ') totalMinutes');
+                static::assertSame($sign * 645539879, $diff->totalSeconds, $sign_alias . ' (' . $zone_alias . ') totalSeconds');
+                /**
+                 * One of the timestamps is off by an hour when timezone local (Europe/Copenhagen).
+                 * Apparantly a getTimestamp flaw; \DateInterval seem right because
+                 * @see \DateTime::getTimestamp()
+                 * @see https://bugs.php.net/bug.php?id=63442
+                 * However, Javascript date minus date delivers the same result
+                 * as PHP timestamp minus timestamp.
+                 */
+                $timestamp_off = $zone_alias == 'UTC' ? 0 : 3600;
+                static::assertSame(
+                    $sign * 645539879,
+                    $sign * ($last->getTimestamp() - $first->getTimestamp() + $timestamp_off),
+                    $sign_alias . ' (' . $zone_alias . ') DateTime::getTimestamp()'
+                );
+//                if ($sign == 1 && $zone_alias != 'UTC') {
+//                    \SimpleComplex\Inspect\Inspect::getInstance()->variable([
+//                        $first->getTimestamp(),
+//                        $last->getTimestamp(),
+//                    ])->log();
+//                }
+            }
+        }
 
-
-
-
-        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($interval_negative)->log();
+        var_dump($diff);
     }
 }
