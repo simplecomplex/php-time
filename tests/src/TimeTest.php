@@ -379,4 +379,58 @@ class TimeTest extends TestCase
         static::assertSame(12, $immutable->diffConstant($mutated)->totalMonths);
 
     }
+
+    public function testTimeInterval()
+    {
+        date_default_timezone_set(BootstrapTest::TIMEZONE);
+
+        $first = new Time('2000-01-01 00:00:00');
+        $last = new Time('2020-06-15 12:37:59.555555');
+
+        $interval_positive = $first->diffConstant($last);
+        static::assertSame(20, $interval_positive->y);
+        static::assertSame(20, $interval_positive->totalYears);
+
+        $interval_negative = $last->diffConstant($first);
+        \SimpleComplex\Inspect\Inspect::getInstance()->variable($interval_negative)->log();
+        /*
+        .  y: (integer) 20
+        .  m: (integer) 5
+        .  d: (integer) 14
+        .  h: (integer) 12
+        .  i: (integer) 59
+        .  s: (integer) 59
+        .  f: (float) 0.555555
+        .  invert: (integer) 1
+        .  days: (integer) 7471
+        .  totalYears: (integer) -20
+        .  totalMonths: (integer) -245
+        .  totalDays: (integer) -7471
+        .  totalHours: (integer) -179316
+        .  totalMinutes: (integer) -10758997
+        .  totalSeconds: (integer) -645539879
+         */
+        static::assertSame(20, $interval_negative->y);
+        static::assertSame(5, $interval_negative->m);
+        static::assertSame(14, $interval_negative->d);
+        static::assertSame(12, $interval_negative->h);
+        static::assertSame(37, $interval_negative->i);
+        static::assertSame(59, $interval_negative->s);
+        static::assertSame(0.555555, $interval_negative->f);
+        static::assertSame(7471, $interval_negative->days);
+        static::assertSame(-20, $interval_negative->totalYears);
+        static::assertSame(-245, $interval_negative->totalMonths);
+        static::assertSame(-7471, $interval_negative->totalDays);
+        static::assertSame(-179316, $interval_negative->totalHours);
+        static::assertSame(-10758997, $interval_negative->totalMinutes);
+        static::assertSame(-645539879, $interval_negative->totalSeconds);
+        static::assertSame(-645539879, $first->getTimestamp() - $last->getTimestamp());
+
+
+
+
+
+
+        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($interval_negative)->log();
+    }
 }

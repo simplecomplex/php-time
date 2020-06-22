@@ -39,7 +39,7 @@ use SimpleComplex\Explorable\ExplorableDumpTrait;
  * @property-read int|bool $days  Use $totalDays instead.
  *
  * Own properties; signed totals (negative if negative diff):
- * @todo: property-read int $totalYears
+ * @property-read int $totalYears
  * @property-read int $totalMonths
  * @property-read int $totalDays
  * @property-read int $totalHours
@@ -68,7 +68,7 @@ class TimeIntervalConstant implements ExplorableInterface
         'invert' => null,
         'days' => null,
         // Own.
-//        'totalYears' => null,
+        'totalYears' => null,
         'totalMonths' => null,
         'totalDays' => null,
         'totalHours' => null,
@@ -142,50 +142,52 @@ class TimeIntervalConstant implements ExplorableInterface
         }
 
         if (in_array($key, $this->explorableCursor)) {
+            $sign = !$this->dateInterval->invert ? 1 : -1;
             switch ($key) {
-                /**
-                 * @todo: why not totalYears?
-                 */
-//                case 'totalYears':
-//                    //return (!$this->dateInterval->invert ? 1 : -1) * $this->dateInterval->y;
-//                    return (!$this->dateInterval->invert ? 1 : -1) * (int) $this->dateInterval->format('%y');
+                case 'totalYears':
                 case 'totalMonths':
-                    /**
-                     * @todo: why use format() when y and m properties exist?
-                     */
-                    return (!$this->dateInterval->invert ? 1 : -1)
-                        * ((int) ($this->dateInterval->format('%y') * 12) + (int) $this->dateInterval->format('%m'));
+                    $years = $this->dateInterval->y;
+                    if ($key == 'totalYears') {
+                        return !$years ? 0 : ($sign * $years);
+                    }
+                    $months = ($years * 12) + $this->dateInterval->m;
+                    return !$months ? 0 : ($sign * $months);
                 case 'totalDays':
                 case 'totalHours':
                 case 'totalMinutes':
                 case 'totalSeconds':
                     /**
-                     * @todo: why is totalMonths separated from the other proporties?
-                     * @todo: why shan't totalMonths be added, the way the rest of the properties are?
+                     * DateInterval->days is _total_ days (years + months + days),
+                     * whereas DateInterval->d is _net_ days (years and months excluded).
+                     *
+                     * Thus years and months shan't be added when calculating
+                     * total days, hours, minutes and seconds.
+                     *
+                     * @see \DateInterval::$days
+                     * @see \DateInterval::$d
                      */
-                    $sign = !$this->dateInterval->invert ? 1 : -1;
                     $days = $this->dateInterval->days;
                     // \DateInterval::days is false unless created
                     // via \DateTime::diff().
                     if ($days === false) {
                         /**
-                         * @that is no fix; format(%a) doesn't work if days is false; to throw exception instead.
+                         * @todo: that is no fix; format(%a) doesn't work if days is false; to throw exception instead.
                          */
                         $days = (int) $this->dateInterval->format('%a');
                     }
                     if ($key == 'totalDays') {
-                        return !$days ? $days : ($sign * $days);
+                        return !$days ? 0 : ($sign * $days);
                     }
                     $hours = ($days * 24) + $this->dateInterval->h;
                     if ($key == 'totalHours') {
-                        return !$hours ? $hours : ($sign * $hours);
+                        return !$hours ? 0 : ($sign * $hours);
                     }
                     $minutes = ($hours * 60) + $this->dateInterval->i;
                     if ($key == 'totalMinutes') {
-                        return !$minutes ? $minutes : ($sign * $minutes);
+                        return !$minutes ? 0 : ($sign * $minutes);
                     }
                     $seconds = ($minutes * 60) + $this->dateInterval->s;
-                    return !$seconds ? $seconds : ($sign * $seconds);
+                    return !$seconds ? 0 : ($sign * $seconds);
             }
             return $this->dateInterval->{$key};
         }
@@ -242,6 +244,7 @@ class TimeIntervalConstant implements ExplorableInterface
     public static function __callStatic(string $key, $arguments)
     {
         if ($key == 'createFromDateString') {
+            // @todo: wrong, but not for that reason; would have $days:false because not created via DateTime::diff().
             throw new \RuntimeException(
                 get_called_class() . ' method[' . $key . '] is forbidden because it would mutate the interval.'
             );
