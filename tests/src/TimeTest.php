@@ -467,7 +467,5 @@ class TimeTest extends TestCase
                 }
             }
         }
-
-        var_dump($diff);
     }
 }

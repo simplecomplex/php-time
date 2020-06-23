@@ -643,7 +643,7 @@ class Time extends \DateTime implements \JsonSerializable
     }
 
     /**
-     * Get difference as a wrapped DateInterval with signed total properties.
+     * Works correctly with non-UTC timezones.
      *
      * Always compares using UTC timezone, because native
      * \DateTime+\DateInterval can only handle UTC reliably.
@@ -652,19 +652,32 @@ class Time extends \DateTime implements \JsonSerializable
      * @see \DateTime::diff()
      * @see \DateInterval
      *
+     * Unlike diff() this has no $absolute parameter, because that doesn't
+     * make sense userland (seems for internal use).
+     * All native \DateInterval's properties already are absolute (unsigned),
+     * so caller could just disregard the invert property.
+     *
      * @param \DateTimeInterface $dateTime
      *      Supposedly equal to or later than this time,
      *      otherwise totals will be negative.
      *
-     * @return TimeIntervalConstant
+     * @return \DateInterval
      *
      * @throws \RuntimeException
      *      Arg $dateTime's class has no setTimezone() method.
      * @throws \Exception
      *      Propagated; \DateTime constructor.
      */
-    public function diffConstant(\DateTimeInterface $dateTime) : TimeIntervalConstant
+    public function diffDate(\DateTimeInterface $dateTime) : \DateInterval
     {
+        /**
+         * Overriding diff() is not possible (or at least risky or ugly),
+         * because this method needs to call parent diff(), and that on another
+         * instance than $this.
+         *
+         * And PHP internals may well rely on the defects on native diff().
+         */
+
         $tz_utc = null;
 
         if ($this->timezoneName == 'UTC') {
@@ -688,7 +701,30 @@ class Time extends \DateTime implements \JsonSerializable
             $subject = (clone $dateTime)->setTimezone($tz_utc ?? $tz_utc = new \DateTimeZone('UTC'));
         }
 
-        return new TimeIntervalConstant($baseline->diff($subject));
+        return $baseline->diff($subject);
+    }
+
+    /**
+     * Get difference as a wrapped DateInterval with signed total properties,
+     * including total hours, minutes etc.
+     *
+     * Works correctly with non-UTC timezones.
+     * @see Time::diffDate()
+     *
+     * @param \DateTimeInterface $dateTime
+     *      Supposedly equal to or later than this time,
+     *      otherwise totals will be negative.
+     *
+     * @return TimeIntervalConstant
+     *
+     * @throws \RuntimeException
+     *      Arg $dateTime's class has no setTimezone() method.
+     * @throws \Exception
+     *      Propagated; \DateTime constructor.
+     */
+    public function diffConstant(\DateTimeInterface $dateTime) : TimeIntervalConstant
+    {
+        return new TimeIntervalConstant($this->diffDate($dateTime));
     }
 
     /**
