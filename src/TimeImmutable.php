@@ -14,6 +14,11 @@ namespace SimpleComplex\Time;
  *
  * Uses intermediate Time instances for mutations.
  *
+ * Freezing has no effect.
+ * @see Time::freeze()
+ * @see Time::frozen()
+ *
+ *
  * Extends Time, not \DateTimeImmutable.
  * Thus Time and TimeImmutable are both:
  * - Time
@@ -307,13 +312,26 @@ class TimeImmutable extends Time
     /**
      * {@inheritDoc}
      *
+     * @throws \InvalidArgumentException
+     *      Arg precision not empty or milliseconds|microseconds.
      * @throws \Exception
      *      Propagated; \DateTime constructor.
      */
     public function setJsonSerializePrecision(string $precision) : Time
     {
-        $t = (new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone()))
-            ->setJsonSerializePrecision($precision);
-        return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+        // Setting a simple property doesn't produce perpetual loop;
+        // as calling method on clone would.
+        $t = clone $this;
+
+        switch ($precision) {
+            case '':
+            case 'milliseconds':
+            case 'microseconds':
+                $t->jsonSerializePrecision = $precision;
+                return $t;
+        }
+        throw new \InvalidArgumentException(
+            'Arg precision[' . $precision . '] isn\'t empty or value milliseconds|microseconds.'
+        );
     }
 }

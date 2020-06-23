@@ -377,7 +377,25 @@ class TimeTest extends TestCase
         static::assertInstanceOf(TimeImmutable::class, $mutated);
 
         static::assertSame(12, $immutable->diffTime($mutated)->totalMonths);
+    }
 
+    public function testJsonSerilizationPrecision()
+    {
+        date_default_timezone_set(BootstrapTest::TIMEZONE);
+
+        $mutable = new Time('2020-01-01 00:00:00.001002');
+        static::assertSame('"2020-01-01T00:00:00+01:00"', json_encode($mutable));
+        $mutable->setJsonSerializePrecision('milliseconds');
+        static::assertSame('"2020-01-01T00:00:00.001+01:00"', json_encode($mutable));
+        $mutable->setJsonSerializePrecision('microseconds');
+        static::assertSame('"2020-01-01T00:00:00.001002+01:00"', json_encode($mutable));
+
+        $immutable = new TimeImmutable('2020-01-01 00:00:00.001002');
+        static::assertSame('"2020-01-01T00:00:00+01:00"', json_encode($immutable));
+        $immutable = $immutable->setJsonSerializePrecision('milliseconds');
+        static::assertSame('"2020-01-01T00:00:00.001+01:00"', json_encode($immutable));
+        $immutable = $immutable->setJsonSerializePrecision('microseconds');
+        static::assertSame('"2020-01-01T00:00:00.001002+01:00"', json_encode($immutable));
     }
 
     /**
