@@ -70,6 +70,7 @@ class TimeImmutable extends Time
      */
     public function add(/*\DateInterval*/ $interval) : \DateTime /*self invariant*/
     {
+        // Use intermediate Time; cloning would result in perpetual loop.
         $t = (new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone()))
             ->add($interval);
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
