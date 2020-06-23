@@ -12,6 +12,8 @@ namespace SimpleComplex\Time;
 /**
  * Immutable Time.
  *
+ * Uses intermediate Time instances for mutations.
+ *
  * Extends Time, not \DateTimeImmutable.
  * Thus Time and TimeImmutable are both:
  * - Time
@@ -172,6 +174,8 @@ class TimeImmutable extends Time
 
     // Own methods.-------------------------------------------------------------
 
+    // Statics.---------------------------------------------
+
     /**
      * {@inheritDoc}
      */
@@ -195,15 +199,8 @@ class TimeImmutable extends Time
         return parent::resolve($time, $keepForeignTimezone);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function setTimezoneToLocal() : \DateTime /*self invariant*/
-    {
-        $t = (new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone()))
-            ->setTimezoneToLocal();
-        return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
-    }
+
+    // Instance general.------------------------------------
 
     /**
      * Get as Time.
@@ -219,14 +216,33 @@ class TimeImmutable extends Time
     }
 
     /**
+     * Freezing has no effect.
+     * Instance self is never mutated, uses intermediate Time instances
+     * for mutations.
+     *
+     * @see Time::freeze()
+     * @see Time::frozen()
+     */
+
+
+    // Timezone.--------------------------------------------
+
+    /**
      * {@inheritDoc}
      */
-    public function modifySafely(string $modify) : Time
+    public function setTimezoneToLocal() : \DateTime /*self invariant*/
     {
         $t = (new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone()))
-            ->modifySafely($modify);
+            ->setTimezoneToLocal();
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
+
+
+    // Diff.------------------------------------------------
+
+    // None.
+
+    // Modify.------------------------------------------------------------------
 
     /**
      * {@inheritDoc}
@@ -255,6 +271,16 @@ class TimeImmutable extends Time
     {
         $t = (new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone()))
             ->setToLastDayOfMonth();
+        return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function modifySafely(string $modify) : Time
+    {
+        $t = (new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone()))
+            ->modifySafely($modify);
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
 

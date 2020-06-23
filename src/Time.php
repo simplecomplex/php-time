@@ -380,6 +380,8 @@ class Time extends \DateTime implements \JsonSerializable
 
     // Own methods.-------------------------------------------------------------
 
+    // Statics.---------------------------------------------
+
     /**
      * Get the local (default) timezone which gets memorized first time
      * the Time constructor gets called.
@@ -543,6 +545,9 @@ class Time extends \DateTime implements \JsonSerializable
         return $t;
     }
 
+
+    // Instance general.------------------------------------
+
     /**
      * The clone will be unfrozen.
      *
@@ -555,6 +560,19 @@ class Time extends \DateTime implements \JsonSerializable
         $this->frozen = false;
         // \DateTime has no __clone() method in PHP 7.0.
         //parent::__clone();
+    }
+
+    /**
+     * Get as native \DateTime.
+     *
+     * @return \DateTime
+     *
+     * @throws \Exception
+     *      Propagated; \DateTime constructor.
+     */
+    public function toDatetime() : \DateTime
+    {
+        return new \DateTime($this->format('Y-m-d H:i:s.u'), $this->getTimezone());
     }
 
     /**
@@ -578,6 +596,26 @@ class Time extends \DateTime implements \JsonSerializable
     public function isFrozen() : bool
     {
         return $this->frozen;
+    }
+
+
+    // Timezone.--------------------------------------------
+
+    /**
+     * Whether this object's timezone is same as local (default) timezone.
+     *
+     * The ability of handling differing timezones is a blessing and a curse.
+     * In Javascript the timezone aspect is simple, there's always only local
+     * and UTC, and it's transparent which getters and setters work with which
+     * timezone.
+     * With the PHP \DateTime things are more muddled.
+     * @see Time::setTimezoneToLocal()
+     *
+     * @return bool
+     */
+    public function timezoneIsLocal() : bool
+    {
+        return $this->timezoneIsLocal;
     }
 
     /**
@@ -613,35 +651,8 @@ class Time extends \DateTime implements \JsonSerializable
         return $this;
     }
 
-    /**
-     * Whether this object's timezone is same as local (default) timezone.
-     *
-     * The ability of handling differing timezones is a blessing and a curse.
-     * In Javascript the timezone aspect is simple, there's always only local
-     * and UTC, and it's transparent which getters and setters work with which
-     * timezone.
-     * With the PHP \DateTime things are more muddled.
-     * @see Time::setTimezoneToLocal()
-     *
-     * @return bool
-     */
-    public function timezoneIsLocal() : bool
-    {
-        return $this->timezoneIsLocal;
-    }
 
-    /**
-     * Get as native \DateTime.
-     *
-     * @return \DateTime
-     *
-     * @throws \Exception
-     *      Propagated; \DateTime constructor.
-     */
-    public function toDatetime() : \DateTime
-    {
-        return new \DateTime($this->format('Y-m-d H:i:s.u'), $this->getTimezone());
-    }
+    // Diff.------------------------------------------------
 
     /**
      * Works correctly with non-UTC timezones.
@@ -747,57 +758,8 @@ class Time extends \DateTime implements \JsonSerializable
         return $this->diffTime($dateTime);
     }
 
-    /**
-     * Unlike \Datetime::format() this throws exception on failure.
-     *
-     * \Datetime::format() emits warning and returns false on failure.
-     *
-     * Can unfortunately not simply override Datetime::format() because that
-     * sends native \DateTime operations into perpetual loop.
-     *
-     * @param string $format
-     *
-     * @return string
-     *
-     * @throws \InvalidArgumentException
-     *      Arg format invalid.
-     */
-    public function formatSafely(string $format) : string
-    {
-        $v = $this->format($format);
-        if (is_string($v)) {
-            return $v;
-        }
-        throw new \InvalidArgumentException('Arg format[' . $format . '] is invalid.');
-    }
 
-    /**
-     * Unlike \Datetime::modify() this throws exception on failure.
-     *
-     * \Datetime::modify() emits warning and returns false on failure.
-     *
-     * @param string $modify
-     *
-     * @return $this|Time
-     *
-     * @throws \RuntimeException
-     *      Frozen.
-     * @throws \InvalidArgumentException
-     *      Arg format invalid.
-     * @throws \Exception
-     *      Propagated; \DateTime::modify().
-     */
-    public function modifySafely(string $modify) : Time
-    {
-        if ($this->frozen) {
-            throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
-        }
-        $modified = $this->modify($modify);
-        if (($modified instanceof \DateTime)) {
-            return $this;
-        }
-        throw new \InvalidArgumentException('Arg modify[' . $modify . '] is invalid.');
-    }
+    // Modify.------------------------------------------------------------------
 
     /**
      * For safer date-only comparison, sets to midnight 00:00:00.000000.
@@ -887,6 +849,34 @@ class Time extends \DateTime implements \JsonSerializable
             $mnth,
             $this->monthLengthDays($mnth)
         );
+    }
+
+    /**
+     * Unlike \Datetime::modify() this throws exception on failure.
+     *
+     * \Datetime::modify() emits warning and returns false on failure.
+     *
+     * @param string $modify
+     *
+     * @return $this|Time
+     *
+     * @throws \RuntimeException
+     *      Frozen.
+     * @throws \InvalidArgumentException
+     *      Arg format invalid.
+     * @throws \Exception
+     *      Propagated; \DateTime::modify().
+     */
+    public function modifySafely(string $modify) : Time
+    {
+        if ($this->frozen) {
+            throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
+        }
+        $modified = $this->modify($modify);
+        if (($modified instanceof \DateTime)) {
+            return $this;
+        }
+        throw new \InvalidArgumentException('Arg modify[' . $modify . '] is invalid.');
     }
 
     /**
@@ -1035,6 +1025,9 @@ class Time extends \DateTime implements \JsonSerializable
         return $this;
     }
 
+
+    // Informational.---------------------------------------
+
     /**
      * @param int $year
      *      Default: year of this object.
@@ -1083,6 +1076,33 @@ class Time extends \DateTime implements \JsonSerializable
                 return !date('L', $year === null ? $this->getTimestamp() : mktime(1, 1, 1, 2, 1, $year)) ? 28 : 29;
         }
         throw new \InvalidArgumentException('Arg month[' . $month . '] is not 1 through 12.');
+    }
+
+
+    // Formatting getters.----------------------------------
+
+    /**
+     * Unlike \Datetime::format() this throws exception on failure.
+     *
+     * \Datetime::format() emits warning and returns false on failure.
+     *
+     * Can unfortunately not simply override Datetime::format() because that
+     * sends native \DateTime operations into perpetual loop.
+     *
+     * @param string $format
+     *
+     * @return string
+     *
+     * @throws \InvalidArgumentException
+     *      Arg format invalid.
+     */
+    public function formatSafely(string $format) : string
+    {
+        $v = $this->format($format);
+        if (is_string($v)) {
+            return $v;
+        }
+        throw new \InvalidArgumentException('Arg format[' . $format . '] is invalid.');
     }
 
     /**
