@@ -380,9 +380,17 @@ class TimeTest extends TestCase
 
     }
 
-    public function testTimeIntervalConstant()
+    /**
+     * Test interval between two literal dates, which is one hour shorter
+     * if in local timezone than if in UTC timezone.
+     *
+     * Reason: the latter date is within +1 hour summer time, and a summer time
+     * offset doesn't make time 'longer'.
+     *
+     * @throws \Throwable
+     */
+    public function testTimeIntervalUTCVersusLocal()
     {
-
         $signs = [
             'positive' => 1,
             'negative' => -1,
@@ -426,7 +434,11 @@ class TimeTest extends TestCase
                 static::assertSame(20, $diff->y, $sign_alias . ' (' . $zone_alias . ') y');
                 static::assertSame(5, $diff->m, $sign_alias . ' (' . $zone_alias . ') m');
                 static::assertSame(14, $diff->d, $sign_alias . ' (' . $zone_alias . ') d');
-                static::assertSame(12, $diff->h, $sign_alias . ' (' . $zone_alias . ') h');
+                if ($zone_alias == 'UTC') {
+                    static::assertSame(12, $diff->h, $sign_alias . ' (' . $zone_alias . ') h');
+                } else {
+                    static::assertSame(11, $diff->h, $sign_alias . ' (' . $zone_alias . ') h');
+                }
                 static::assertSame(37, $diff->i, $sign_alias . ' (' . $zone_alias . ') i');
                 static::assertSame(59, $diff->s, $sign_alias . ' (' . $zone_alias . ') s');
                 static::assertSame(0.555555, $diff->f, $sign_alias . ' (' . $zone_alias . ') f');
@@ -434,29 +446,25 @@ class TimeTest extends TestCase
                 static::assertSame($sign * 20, $diff->totalYears, $sign_alias . ' (' . $zone_alias . ') totalYears');
                 static::assertSame($sign * 245, $diff->totalMonths, $sign_alias . ' (' . $zone_alias . ') totalMonths');
                 static::assertSame($sign * 7471, $diff->totalDays, $sign_alias . ' (' . $zone_alias . ') totalDays');
-                static::assertSame($sign * 179316, $diff->totalHours, $sign_alias . ' (' . $zone_alias . ') totalHours');
-                static::assertSame($sign * 10758997, $diff->totalMinutes, $sign_alias . ' (' . $zone_alias . ') totalMinutes');
-                static::assertSame($sign * 645539879, $diff->totalSeconds, $sign_alias . ' (' . $zone_alias . ') totalSeconds');
-                /**
-                 * One of the timestamps is off by an hour when timezone local (Europe/Copenhagen).
-                 * Apparantly a getTimestamp flaw; \DateInterval seem right because
-                 * @see \DateTime::getTimestamp()
-                 * @see https://bugs.php.net/bug.php?id=63442
-                 * However, Javascript date minus date delivers the same result
-                 * as PHP timestamp minus timestamp.
-                 */
-                $timestamp_off = $zone_alias == 'UTC' ? 0 : 3600;
-                static::assertSame(
-                    $sign * 645539879,
-                    $sign * ($last->getTimestamp() - $first->getTimestamp() + $timestamp_off),
-                    $sign_alias . ' (' . $zone_alias . ') DateTime::getTimestamp()'
-                );
-//                if ($sign == 1 && $zone_alias != 'UTC') {
-//                    \SimpleComplex\Inspect\Inspect::getInstance()->variable([
-//                        $first->getTimestamp(),
-//                        $last->getTimestamp(),
-//                    ])->log();
-//                }
+                if ($zone_alias == 'UTC') {
+                    static::assertSame($sign * 179316, $diff->totalHours, $sign_alias . ' (' . $zone_alias . ') totalHours');
+                    static::assertSame($sign * 10758997, $diff->totalMinutes, $sign_alias . ' (' . $zone_alias . ') totalMinutes');
+                    static::assertSame($sign * 645539879, $diff->totalSeconds, $sign_alias . ' (' . $zone_alias . ') totalSeconds');
+                    static::assertSame(
+                        $sign * 645539879,
+                        $sign * ($last->getTimestamp() - $first->getTimestamp()),
+                        $sign_alias . ' (' . $zone_alias . ') DateTime::getTimestamp()'
+                    );
+                } else {
+                    static::assertSame($sign * 179315, $diff->totalHours, $sign_alias . ' (' . $zone_alias . ') totalHours');
+                    static::assertSame($sign * 10758937, $diff->totalMinutes, $sign_alias . ' (' . $zone_alias . ') totalMinutes');
+                    static::assertSame($sign * 645536279, $diff->totalSeconds, $sign_alias . ' (' . $zone_alias . ') totalSeconds');
+                    static::assertSame(
+                        $sign * 645536279,
+                        $sign * ($last->getTimestamp() - $first->getTimestamp()),
+                        $sign_alias . ' (' . $zone_alias . ') DateTime::getTimestamp()'
+                    );
+                }
             }
         }
 
