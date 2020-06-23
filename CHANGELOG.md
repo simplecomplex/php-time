@@ -13,6 +13,7 @@ to \DateTime.getTimestamp() rounds microseconds; instead of floor'ing.
 
 ### Changed
 * Requires PHP >=7.2; not 7.0.
+* require-dev phpunit ^8; not ^6.5.
 * resolve() check for DateTimeInterface, not just DateTime.
 * TimeIntervalConstant now implements Explorable\ExplorableInterface instead of
 extending Utils\Explorable.
