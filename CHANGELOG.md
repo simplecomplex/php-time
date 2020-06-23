@@ -7,7 +7,7 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 ## [Unreleased]
 
 ### Added
-* Forked from simplecomplex/utils time classes.
+* Forked from simplecomplex/utils (v2.3) time classes.
 * diffDate() works correctly with non-UTC timezones, returns \DateInterval.
 * Getters toUnixSeconds|toUnixMilliseconds|toUnixMicroseconds(), which contrary
 to \DateTime.getTimestamp() rounds microseconds; instead of floor'ing.
