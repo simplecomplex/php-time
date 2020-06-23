@@ -13,12 +13,13 @@ namespace SimpleComplex\Time;
  * Extended datetime fixing shortcomings and defects of native \DateTime.
  *
  * Features:
- * - is stringable
+ * - enhanced timezone awareness
+ * - diff (diffDate/diffTime, that is) works correctly with non-UTC timezone
+ * - safer formatting and modifying
+ * - is stringable, to ISO-8601
  * - JSON serializes to string ISO-8601 with timezone marker
  * - freezable
- * - enhanced timezone awareness
- * - diff (diffConstant, that is) works correctly with non-UTC timezone
- * - simpler and safer getters and setters
+ * - more and simpler getters and setters
  *
  *
  * GENERAL TIMEZONE WARNING
@@ -26,7 +27,7 @@ namespace SimpleComplex\Time;
  * Computation based on offset will go wrong whenever one date is in summer time
  * and another isn't.
  *
- * @see TimeIntervalConstant
+ * @see TimeInterval
  *
  * @package SimpleComplex\Time
  */
@@ -715,16 +716,35 @@ class Time extends \DateTime implements \JsonSerializable
      *      Supposedly equal to or later than this time,
      *      otherwise totals will be negative.
      *
-     * @return TimeIntervalConstant
+     * @return TimeInterval
      *
      * @throws \RuntimeException
      *      Arg $dateTime's class has no setTimezone() method.
      * @throws \Exception
      *      Propagated; \DateTime constructor.
      */
-    public function diffConstant(\DateTimeInterface $dateTime) : TimeIntervalConstant
+    public function diffTime(\DateTimeInterface $dateTime) : TimeInterval
     {
-        return new TimeIntervalConstant($this->diffDate($dateTime));
+        return new TimeInterval($this->diffDate($dateTime));
+    }
+
+    /**
+     * @deprecated Use diffTime() instead.
+     *
+     * @param \DateTimeInterface $dateTime
+     * @return TimeInterval
+     *
+     * @throws \Throwable
+     *      Propagated.
+     */
+    public function diffConstant(\DateTimeInterface $dateTime) : TimeInterval
+    {
+        @trigger_error(
+            __CLASS__ . '::' . __METHOD__
+            . ' method is deprecated and will be removed soon, use diffTime instead.',
+            E_USER_DEPRECATED
+        );
+        return $this->diffTime($dateTime);
     }
 
     /**
@@ -780,7 +800,7 @@ class Time extends \DateTime implements \JsonSerializable
     }
 
     /**
-     * Convenience method; set to midnight 00:00:00.000000.
+     * For safer date-only comparison, sets to midnight 00:00:00.000000.
      *
      * @return $this|Time
      *

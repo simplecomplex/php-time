@@ -4,22 +4,24 @@
 and provide more, simpler and safer getters and setters.
 
 Features:
+ * enhanced timezone awareness
+ * diff (diffDate/diffTime) works correctly with non-UTC timezones
+ * safer formatting and modifying
  * is stringable (sic!), to ISO-8601
  * JSON serializes to string ISO-8601 with timezone marker
  * freezable
- * enhanced timezone awareness
- * diff (diffConstant, that is) works correctly across differing timezones
- * simpler and safer getters and setters
+ * more and simpler getters and setters
  
-It's inspired by Javascript's Date class, and secures better Javascript interoperability  
-by stresssing and facilitating timezone awareness,  and by JSON serializing to ISO-8601 timestamp string;  
+Inspired by Javascript's Date class, and secures better Javascript interoperability  
+by stresssing and facilitating timezone awareness, and by JSON serializing to ISO-8601 timestamp string;  
 _not_ a phoney Javascript object representing a PHP DateTime's inner properties. 
 
-Time is a fork of simplecomplex/utils' time classes. This Time has no dependencies.
+Time is forked from simplecomplex/utils' time classes.
 
 ### Requirements ###
 
 - PHP >=7.2
+- [SimpleComplex Explorable](https://github.com/simplecomplex/php-explorable)
 
 #### Development requirements ####
 - [PHPUnit](https://github.com/sebastianbergmann/phpunit)

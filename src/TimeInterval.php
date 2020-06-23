@@ -14,16 +14,12 @@ use SimpleComplex\Explorable\ExplorableBaseTrait;
 use SimpleComplex\Explorable\ExplorableDumpTrait;
 
 /**
- * Wrapped native DateInterval plus totalling props for years thru seconds.
+ * Wrapped native DateInterval plus signed totalling properties.
  *
- * @see Time::diffConstant()
- *
- * The 'Constant' part of this class' name is stupid, since native \DateInterval
- * is constant too. Didn't realize that DateInterval's 'public' properties
- * were readonly (and php.net documentation doesn't give any such hint either).
+ * @see Time::diffTime()
  *
  * All DateInterval methods inaccessible except for format().
- * @see TimeIntervalConstant::format()
+ * @see \DateInterval::format()
  *
  * (inner) \DateInterval properties:
  * @property-read int $y  Years.
@@ -46,7 +42,7 @@ use SimpleComplex\Explorable\ExplorableDumpTrait;
  *
  * @package SimpleComplex\Time
  */
-class TimeIntervalConstant implements ExplorableInterface
+class TimeInterval implements ExplorableInterface
 {
     /**
      * Why not simply extend \DateInterval?
@@ -101,7 +97,7 @@ class TimeIntervalConstant implements ExplorableInterface
     protected $dateInterval;
 
     /**
-     * @see Time::diffConstant()
+     * @see Time::diffTime()
      *
      * @param \DateInterval $interval
      *
@@ -120,16 +116,6 @@ class TimeIntervalConstant implements ExplorableInterface
     }
 
     /**
-     * @deprecated Use getDateInterval() instead.
-     *
-     * @return \DateInterval
-     */
-    public function getMutable() : \DateInterval
-    {
-        return clone $this->dateInterval;
-    }
-
-    /**
      * Returns clone of the inner DateInterval.
      *
      * @return \DateInterval
@@ -137,6 +123,21 @@ class TimeIntervalConstant implements ExplorableInterface
     public function getDateInterval() : \DateInterval
     {
         return clone $this->dateInterval;
+    }
+
+    /**
+     * @deprecated Use getDateInterval() instead.
+     *
+     * @return \DateInterval
+     */
+    public function getMutable() : \DateInterval
+    {
+        @trigger_error(
+            __CLASS__ . '::' . __METHOD__
+            . ' method is deprecated and will be removed soon, use getDateInterval instead.',
+            E_USER_DEPRECATED
+        );
+        return $this->getDateInterval();
     }
 
     /**

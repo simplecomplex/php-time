@@ -223,9 +223,9 @@ class TimeTest extends TestCase
     }
 
     /**
-     * @see \SimpleComplex\Time\Time::diffConstant()
+     * @see \SimpleComplex\Time\Time::diffTime()
      */
-    public function testDiffConstant()
+    public function testDiffTime()
     {
         date_default_timezone_set(BootstrapTest::TIMEZONE);
 
@@ -237,14 +237,14 @@ class TimeTest extends TestCase
         $interval_mutable->h = 2;
         static::assertSame(2, $interval_mutable->h, '');
 
-        $interval_constant = $first->diffConstant($last);
+        $interval_constant = $first->diffTime($last);
         static::assertSame(0, $interval_constant->h, '');
         $this->expectException(\RuntimeException::class);
         /** @noinspection Annotator */
         $interval_constant->{'h'} = 2;
 
         /**
-         * \SimpleComplex\Time\Time::diffConstant()
+         * \SimpleComplex\Time\Time::diffTime()
          *
          * Fixes that native diff()|\DateInterval calculation doesn't work correctly
          * with other timezone than UTC.
@@ -256,14 +256,14 @@ class TimeTest extends TestCase
         date_default_timezone_set('UTC');
         $first = (new Time('2019-02-01'))->setToDateStart();
         $last = (new Time('2019-03-01'))->setToDateStart();
-        $diff = $first->diffConstant($last);
+        $diff = $first->diffTime($last);
         static::assertSame(1, $diff->totalMonths);
 
         // This would fail if that bug wasn't handled.
         date_default_timezone_set(BootstrapTest::TIMEZONE);
         $first = (new Time('2019-02-01'))->setToDateStart();
         $last = (new Time('2019-03-01'))->setToDateStart();
-        static::assertSame(1, $first->diffConstant($last)->totalMonths);
+        static::assertSame(1, $first->diffTime($last)->totalMonths);
 
         // Reset, for posterity.
         date_default_timezone_set($tz_default);
@@ -271,20 +271,20 @@ class TimeTest extends TestCase
         // When baseline is non-UTC: use verbatim clone.
         $first = (new Time('2019-02-01', new \DateTimeZone(BootstrapTest::TIMEZONE)))->setToDateStart();
         $last = (new Time('2019-03-01', new \DateTimeZone('UTC')))->setToDateStart();
-        static::assertSame(1, $first->diffConstant($last, true)->totalMonths);
+        static::assertSame(1, $first->diffTime($last, true)->totalMonths);
 
         // When deviant is non-UTC (and base is UTC), move deviant into UTC.
         $first = (new Time('2019-02-01', new \DateTimeZone('UTC')))->setToDateStart();
         $last = (new Time('2019-03-01', new \DateTimeZone(BootstrapTest::TIMEZONE)))->setToDateStart();
-        static::assertSame(0, $first->diffConstant($last, true)->totalMonths);
+        static::assertSame(0, $first->diffTime($last, true)->totalMonths);
 
         /**
          * Throws exception because the two dates don't have the same timezone,
          * and falsy arg $allowUnEqualTimezones.
-         * @see \SimpleComplex\Time\Time::diffConstant()
+         * @see \SimpleComplex\Time\Time::diffTime()
          */
         $this->expectException(\RuntimeException::class);
-        static::assertSame(0, $first->diffConstant($last, false)->totalMonths);
+        static::assertSame(0, $first->diffTime($last, false)->totalMonths);
     }
 
     public static function testResolve()
@@ -376,7 +376,7 @@ class TimeTest extends TestCase
         $mutated = $immutable->modifyDate(1);
         static::assertInstanceOf(TimeImmutable::class, $mutated);
 
-        static::assertSame(12, $immutable->diffConstant($mutated)->totalMonths);
+        static::assertSame(12, $immutable->diffTime($mutated)->totalMonths);
 
     }
 
@@ -409,9 +409,9 @@ class TimeTest extends TestCase
                 $last = new Time('2020-06-15 12:37:59.555555');
 
                 if ($sign == 1) {
-                    $diff = $first->diffConstant($last);
+                    $diff = $first->diffTime($last);
                 } else {
-                    $diff = $last->diffConstant($first);
+                    $diff = $last->diffTime($first);
                 }
                 //\SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log();
                 /*

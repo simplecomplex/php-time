@@ -8,6 +8,7 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
 ### Added
 * Forked from simplecomplex/utils time classes.
+* diffDate() works correctly with non-UTC timezones, returns \DateInterval.
 * Getters toUnixSeconds|toUnixMilliseconds|toUnixMicroseconds(), which contrary
 to \DateTime.getTimestamp() rounds microseconds; instead of floor'ing.
 
@@ -15,15 +16,19 @@ to \DateTime.getTimestamp() rounds microseconds; instead of floor'ing.
 * Requires PHP >=7.2; not 7.0.
 * require-dev phpunit ^8; not ^6.5.
 * resolve() check for DateTimeInterface, not just DateTime.
-* TimeIntervalConstant now implements Explorable\ExplorableInterface instead of
+* TimeInterval now implements Explorable\ExplorableInterface instead of
 extending Utils\Explorable.
+* TimeInterval renamed; from TimeIntervalConstant (daft: \DateInterval is
+effectively constant, by itself).
+* diffTime() replaces diffConstant(), the latter now deprecated.
+* TimeInterval::getDateInterval() replaces getMutable(); now deprecated.
 * Changelog in standard keepachangelog format; previous was idiosyncratic.
 
 ### Fixed
-* diff() must move non-UTC timezone correctly, not use literal time in other
+* diffDate() must move non-UTC timezone correctly, not use literal time in other
 (UTC) timezone.
-* diff() must NOT use offset as indication of timezone similarity.
-* diff() shan't care whether this and subject's timezones are same/similar;
+* diffDate() must NOT use offset as indication of timezone similarity.
+* diffDate() shan't care whether this and subject's timezones are same/similar;
 parameter $allowUnEqualTimezones removed.
 
 
