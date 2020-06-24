@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace SimpleComplex\Tests\Time;
 
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Error\Deprecated as PHPUnit_Error_Deprecated;
+use Jasny\PHPUnit\ExpectWarningTrait;
 
 use SimpleComplex\Time\Time;
 use SimpleComplex\Time\TimeImmutable;
@@ -25,6 +25,12 @@ use SimpleComplex\Time\TimeImmutable;
  */
 class TimeTest extends TestCase
 {
+    /**
+     * Continue on PHP notice|warning; detect E_USER_DEPRECATED.
+     * @see https://github.com/jasny/phpunit-extension
+     * @see https://github.com/sebastianbergmann/phpunit/issues/3758
+     */
+    use ExpectWarningTrait;
 
     /**
      * @see \SimpleComplex\Time\Time::validateTimezoneDefault()
@@ -89,7 +95,7 @@ class TimeTest extends TestCase
             $this->expectDeprecation();
             static::assertSame(555, $time->{'getMilliseconds'}(), '(' . $class . ')->milliseconds value');
             $this->expectDeprecation();
-            static::assertSame(555555, $time->microseconds, '(' . $class . ')->microseconds value');
+            static::assertSame(555555, $time->{'getMicroseconds'}(), '(' . $class . ')->microseconds value');
         }
     }
 
