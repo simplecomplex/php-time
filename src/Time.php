@@ -28,8 +28,10 @@ namespace SimpleComplex\Time;
  * and another isn't.
  *
  *
- * Magically accessible properties:
+ * Magically accessible properties.
  * @see Time::__get()
+ *
+ * Plain time parts:
  * @property-read int $year
  * @property-read int $month
  * @property-read int $date
@@ -39,14 +41,29 @@ namespace SimpleComplex\Time;
  * @property-read int $milliseconds
  * @property-read int $microseconds
  *
+ * Unix Epoch:
+ * Native getTimestamp() disregards microseconds; in effect floors them.
+ * This property rounds microseconds.
+ * @property-read int $unixSeconds
+ * Floats to avoid hitting precision limit.
+ * @property-read float $unixMilliseconds
+ * @property-read float $unixMicroseconds
+ *
+ * No-zone ISO 8601 timestamps:
+ * @property-read string $dateISO  YYYY-MM-DD
+ * @property-read string $timeISO  HH:ii:ss
+ * @property-read string $dateTimeISO  YYYY-MM-DD HH:ii:ss
+ *
+ *
  * @package SimpleComplex\Time
  */
 class Time extends \DateTime implements \JsonSerializable
 {
     /**
-     * Format by time part name.
+     * Format by time part.
      *
-     * Final, this class accesses the constant via self::, not static::.
+     * All results in integer.
+     * @see Time::__get()
      *
      * @var string[]
      */
@@ -59,6 +76,20 @@ class Time extends \DateTime implements \JsonSerializable
         'seconds' => 's',
         'milliseconds' => 'v',
         'microseconds' => 'u',
+    ];
+
+    /**
+     * Format by time pattern.
+     *
+     * All results in string.
+     * @see Time::__get()
+     *
+     * @var string[]
+     */
+    public const TIME_PATTERN_FORMAT = [
+        'dateISO' => 'Y-m-d',
+        'timeISO' => 'H:i:s',
+        'dateTimeISO' => 'Y-m-d H:i:s',
     ];
 
     /**
@@ -1150,6 +1181,18 @@ class Time extends \DateTime implements \JsonSerializable
      */
     public function __get(string $key)
     {
+        switch ($key) {
+            case 'unixSeconds':
+                return (int) round(
+                    $this->getTimestamp() + ((int) $this->format('u') / 1000000)
+                );
+            case 'unixMilliseconds':
+                // Uses the 'u' format instead of 'v' for consistency with
+                // toUnixMicroseconds().
+                return (float) ($this->getTimestamp() * 1000) + round($this->format('u') / 1000, 3);
+            case 'unixMicroseconds':
+                return (float) ($this->getTimestamp() * 1000000) + (float) $this->format('u');
+        }
         /**
          * Final; self not static.
          * @see Time::TIME_PART_FORMAT
@@ -1158,10 +1201,15 @@ class Time extends \DateTime implements \JsonSerializable
         if ($format) {
             return (int) $this->format($format);
         }
-        // Try parent.
-        if (method_exists(\DateTime::class, '__get')) {
-            return call_user_func(['parent', '__get'], $key);
+        /**
+         * Final; self not static.
+         * @see Time::TIME_PATTERN_FORMAT
+         */
+        $format = self::TIME_PATTERN_FORMAT[$key] ?? null;
+        if ($format) {
+            return $this->format($format);
         }
+
         throw new \OutOfBoundsException(get_class($this) . ' instance exposes no property[' . $key . '].');
     }
 
@@ -1170,6 +1218,7 @@ class Time extends \DateTime implements \JsonSerializable
      * now deprecated:
      * - getYear, getMonth, getDate, getHours, getMinutes, getSeconds,
      *   getMilliseconds, getMicroseconds
+     * - getDateISO, getTimeISO, getDateTimeISO
      *
      * Relays to
      * @see Time::__get()
@@ -1202,94 +1251,26 @@ class Time extends \DateTime implements \JsonSerializable
                     return $this->__get($part);
                 }
             }
+            /**
+             * Final; self not static.
+             * @see Time::TIME_PATTERN_FORMAT
+             */
+            $patterns = array_keys(self::TIME_PATTERN_FORMAT);
+            foreach ($patterns as $pattern) {
+                $method = 'get' . ucfirst($pattern);
+                if ($name == $method) {
+                    // Not @trigger_error() because important.
+                    trigger_error(
+                        __CLASS__ . '::' . $name . ' method is deprecated and will be removed soon'
+                        . ', use instance property[' . $pattern . '] instead.',
+                        E_USER_DEPRECATED
+                    );
+                    return $this->__get($pattern);
+                }
+            }
         }
-        // Try parent.
-        if (method_exists(\DateTime::class, '__call')) {
-            return call_user_func(['parent', '__call'], $name, $arguments);
-        }
+
         throw new \BadMethodCallException( 'Class ' . __CLASS__ . ' has no method[' . $name . '].');
-    }
-
-    /**
-     * Format to Y-m-d, using the object's timezone.
-     *
-     * Beware that timezone (unlike Javascript) may not be local.
-     * @see Time::toDateISOLocal()
-     *
-     * @return string
-     */
-    public function getDateISO() : string
-    {
-        return $this->format('Y-m-d');
-    }
-
-    /**
-     * Format to H:i:s|H:i, using the object's timezone.
-     *
-     * Beware that timezone (unlike Javascript) may not be local.
-     * @see Time::toTimeISOLocal()
-     *
-     * @param bool $noSeconds
-     *
-     * @return string
-     */
-    public function getTimeISO(bool $noSeconds = false) : string
-    {
-        return $this->format(!$noSeconds ? 'H:i:s' : 'H:i');
-    }
-
-    /**
-     * Format to Y-m-d H:i:s|Y-m-d H:i, using the object's timezone.
-     *
-     * Beware that timezone (unlike Javascript) may not be local.
-     * @see Time::toTimeISOLocal()
-     *
-     * @param bool $noSeconds
-     *
-     * @return string
-     */
-    public function getDateTimeISO(bool $noSeconds = false) : string
-    {
-        return $this->format(!$noSeconds ? 'Y-m-d H:i:s' : 'Y-m-d H:i');
-    }
-
-    /**
-     * Seconds since Unix Epoch (1970-01-01).
-     *
-     * Native getTimestamp() disregards microseconds; in effect floors them.
-     * This method rounds microseconds.
-     *
-     * @return int
-     */
-    public function toUnixSeconds() : int
-    {
-        return (int) round(
-            $this->getTimestamp() + ((int) $this->format('u') / 1000000)
-        );
-    }
-
-    /**
-     * Milliseconds since Unix Epoch (1970-01-01).
-     *
-     * @return float
-     *      Float to avoid hitting precision limit.
-     */
-    public function toUnixMilliseconds() : float
-    {
-        // Uses the 'u' format instead of 'v' for consistency with
-        // toUnixMicroseconds().
-        return (float) ($this->getTimestamp() * 1000) + round($this->format('u') / 1000, 3);
-    }
-
-    /**
-     * Microseconds since Unix Epoch (1970-01-01).
-     *
-     * @return float
-     *      Float to avoid hitting precision limit.
-     */
-    public function toUnixMicroseconds() : float
-    {
-        return (float) ($this->getTimestamp() * 1000000) + (float) $this->format('u');
     }
 
     /**
@@ -1305,55 +1286,45 @@ class Time extends \DateTime implements \JsonSerializable
     public function toDateISOLocal() : string
     {
         if ($this->timezoneIsLocal) {
-            $that = $this;
-        } else {
-            $that = (clone $this)->setTimezone(static::$timezoneLocal);
+            return $this->format('Y-m-d');
         }
-        return $that->format('Y-m-d');
+        return (clone $this)->setTimezone(static::$timezoneLocal)->format('Y-m-d');
     }
 
     /**
-     * Format to H:i:s|H:i, using local (default) timezone.
+     * Format to H:i:s, using local (default) timezone.
      *
      * Does not alter the object's own timezone.
-     *
-     * @param bool $noSeconds
      *
      * @return string
      *
      * @throws \Exception
      *      Propagated; \DateTime::setTimezone().
      */
-    public function toTimeISOLocal(bool $noSeconds = false) : string
+    public function toTimeISOLocal() : string
     {
         if ($this->timezoneIsLocal) {
-            $that = $this;
-        } else {
-            $that = (clone $this)->setTimezone(static::$timezoneLocal);
+            return $this->format('H:i:s');
         }
-        return $that->format(!$noSeconds ? 'H:i:s' : 'H:i');
+        return (clone $this)->setTimezone(static::$timezoneLocal)->format('H:i:s');
     }
 
     /**
-     * Format to Y-m-d H:i:s|Y-m-d H:i, using local (default) timezone.
+     * Format to Y-m-d H:i:s, using local (default) timezone.
      *
      * Does not alter the object's own timezone.
-     *
-     * @param bool $noSeconds
      *
      * @return string
      *
      * @throws \Exception
      *      Propagated; \DateTime::setTimezone().
      */
-    public function toDateTimeISOLocal(bool $noSeconds = false) : string
+    public function toDateTimeISOLocal() : string
     {
         if ($this->timezoneIsLocal) {
-            $that = $this;
-        } else {
-            $that = (clone $this)->setTimezone(static::$timezoneLocal);
+            return $this->format('Y-m-d H:i:s');
         }
-        return $that->format(!$noSeconds ? 'Y-m-d H:i:s' : 'Y-m-d H:i');
+        return (clone $this)->setTimezone(static::$timezoneLocal)->format('Y-m-d H:i:s');
     }
 
     /**

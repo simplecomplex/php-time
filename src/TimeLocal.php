@@ -31,7 +31,12 @@ namespace SimpleComplex\Time;
  * @see \SimpleComplex\Time\Time
  *
  *
- * Interited from Time:
+ * PROPERTIES inherited from Time
+ * ------------------------------
+ * Magically accessible properties.
+ * @see Time::__get()
+ *
+ * Plain time parts:
  * @property-read int $year
  * @property-read int $month
  * @property-read int $date
@@ -40,6 +45,19 @@ namespace SimpleComplex\Time;
  * @property-read int $seconds
  * @property-read int $milliseconds
  * @property-read int $microseconds
+ *
+ * Unix Epoch:
+ * Native getTimestamp() disregards microseconds; in effect floors them.
+ * This property rounds microseconds.
+ * @property-read int $unixSeconds
+ * Floats to avoid hitting precision limit.
+ * @property-read float $unixMilliseconds
+ * @property-read float $unixMicroseconds
+ *
+ * No-zone ISO 8601 timestamps:
+ * @property-read string $dateISO  YYYY-MM-DD
+ * @property-read string $timeISO  HH:ii:ss
+ * @property-read string $dateTimeISO  YYYY-MM-DD HH:ii:ss
  *
  * @package SimpleComplex\Time
  */

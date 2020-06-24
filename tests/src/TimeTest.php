@@ -107,12 +107,12 @@ class TimeTest extends TestCase
         $time = new Time('2018-01-01');
 
         $years = $months = $days = 1;
-        static::assertSame('2018-01-01', (clone $time)->modifyDate(0, 0)->getDateISO());
-        static::assertSame('2019-02-02', (clone $time)->modifyDate($years, $months, $days)->getDateISO());
+        static::assertSame('2018-01-01', (clone $time)->modifyDate(0, 0)->dateISO);
+        static::assertSame('2019-02-02', (clone $time)->modifyDate($years, $months, $days)->dateISO);
         // 2017-01-01
         // 2016-12-01
         // 2016-11-30
-        static::assertSame('2016-11-30', (clone $time)->modifyDate(-$years, -$months, -$days)->getDateISO());
+        static::assertSame('2016-11-30', (clone $time)->modifyDate(-$years, -$months, -$days)->dateISO);
 
         // Modifying month only.------------------------------------------------
         $log = [];
@@ -123,7 +123,7 @@ class TimeTest extends TestCase
         $time = (new Time())->setDate($year, $month, $day);
         $limit = 25;
         $log[] = '';
-        $log[] = '     ' . $time->getDateISO();
+        $log[] = '     ' . $time->dateISO;
         for ($months = 1; $months <= $limit; ++$months) {
             $yr = $year;
             $mnth = $month;
@@ -142,7 +142,7 @@ class TimeTest extends TestCase
                 ($yr)
                 . '-' . str_pad('' . $mnth, 2, '0', STR_PAD_LEFT)
                 . '-' . str_pad('' . ($day), 2, '0', STR_PAD_LEFT),
-                $result = (clone $time)->modifyDate(0, $months)->getDateISO()
+                $result = (clone $time)->modifyDate(0, $months)->dateISO
             );
             $log[] = str_pad('' . $months, 3, ' ', STR_PAD_LEFT) . ': ' . $result;
         }
@@ -153,7 +153,7 @@ class TimeTest extends TestCase
         $time = (new Time())->setDate($year, $month, $day);
         $limit = -25;
         $log[] = '';
-        $log[] = '     ' . $time->getDateISO();
+        $log[] = '     ' . $time->dateISO;
         for ($months = -1; $months >= $limit; --$months) {
             $yr = $year;
             $mnth = $month;
@@ -172,7 +172,7 @@ class TimeTest extends TestCase
                 ($yr)
                 . '-' . str_pad('' . $mnth, 2, '0', STR_PAD_LEFT)
                 . '-' . str_pad('' . ($day), 2, '0', STR_PAD_LEFT),
-                $result = (clone $time)->modifyDate(0, $months)->getDateISO()
+                $result = (clone $time)->modifyDate(0, $months)->dateISO
             );
             $log[] = str_pad('' . $months, 3, ' ', STR_PAD_LEFT) . ': ' . $result;
         }
@@ -183,7 +183,7 @@ class TimeTest extends TestCase
         $time = (new Time())->setDate($year, $month, $day);
         $limit = 25;
         $log[] = '';
-        $log[] = '     ' . $time->getDateISO();
+        $log[] = '     ' . $time->dateISO;
         for ($months = 1; $months <= $limit; ++$months) {
             $yr = $year;
             $mnth = $month;
@@ -202,7 +202,7 @@ class TimeTest extends TestCase
                 ($yr)
                 . '-' . str_pad('' . $mnth, 2, '0', STR_PAD_LEFT)
                 . '-' . str_pad('' . ($day), 2, '0', STR_PAD_LEFT),
-                $result = (clone $time)->modifyDate(0, $months)->getDateISO()
+                $result = (clone $time)->modifyDate(0, $months)->dateISO
             );
             $log[] = str_pad('' . $months, 3, ' ', STR_PAD_LEFT) . ': ' . $result;
         }
@@ -213,7 +213,7 @@ class TimeTest extends TestCase
         $time = (new Time())->setDate($year, $month, $day);
         $limit = -25;
         $log[] = '';
-        $log[] = '     ' . $time->getDateISO();
+        $log[] = '     ' . $time->dateISO;
         for ($months = -1; $months >= $limit; --$months) {
             $yr = $year;
             $mnth = $month;
@@ -232,7 +232,7 @@ class TimeTest extends TestCase
                 ($yr)
                 . '-' . str_pad('' . $mnth, 2, '0', STR_PAD_LEFT)
                 . '-' . str_pad('' . ($day), 2, '0', STR_PAD_LEFT),
-                $result = (clone $time)->modifyDate(0, $months)->getDateISO()
+                $result = (clone $time)->modifyDate(0, $months)->dateISO
             );
             $log[] = str_pad('' . $months, 3, ' ', STR_PAD_LEFT) . ': ' . $result;
         }
@@ -242,23 +242,23 @@ class TimeTest extends TestCase
 
         // Days only.
         $time = new Time('2018-01-01');
-        static::assertSame('2018-01-02', (clone $time)->modifyDate(0, 0, 1)->getDateISO());
+        static::assertSame('2018-01-02', (clone $time)->modifyDate(0, 0, 1)->dateISO);
 
         // Last day of February.
         $time = new Time('2018-01-31');
-        static::assertSame('2018-02-28', (clone $time)->modifyDate(0, 1)->getDateISO());
+        static::assertSame('2018-02-28', (clone $time)->modifyDate(0, 1)->dateISO);
         // Leap year last day of February.
-        static::assertSame('2020-02-29', (clone $time)->modifyDate(2, 1)->getDateISO());
+        static::assertSame('2020-02-29', (clone $time)->modifyDate(2, 1)->dateISO);
 
         // Last day of February.
         $time = new Time('2018-01-01');
-        static::assertSame('2018-02-28', (clone $time)->modifyDate(0, 1)->setToLastDayOfMonth()->getDateISO());
+        static::assertSame('2018-02-28', (clone $time)->modifyDate(0, 1)->setToLastDayOfMonth()->dateISO);
         $time = new Time('2018-03-31');
-        static::assertSame('2018-02-28', (clone $time)->modifyDate(0, -1)->getDateISO());
+        static::assertSame('2018-02-28', (clone $time)->modifyDate(0, -1)->dateISO);
 
 
         $time = new Time('2018-01-01');
-        static::assertSame('2018-02-20', (clone $time)->modifyDate(0, 0, 50)->getDateISO());
+        static::assertSame('2018-02-20', (clone $time)->modifyDate(0, 0, 50)->dateISO);
     }
 
     /**
@@ -267,9 +267,9 @@ class TimeTest extends TestCase
     public function testModifyTime()
     {
         $time = new Time('2018-01-01 15:37:13');
-        static::assertSame('2018-01-01 16:38:14', (clone $time)->modifyTime(1, 1, 1)->getDateTimeISO());
-        static::assertSame('2018-01-02 16:38:14', (clone $time)->modifyTime(25, 1, 1)->getDateTimeISO());
-        static::assertSame('2017-12-31 14:36:12', (clone $time)->modifyTime(-25, -1, -1)->getDateTimeISO());
+        static::assertSame('2018-01-01 16:38:14', (clone $time)->modifyTime(1, 1, 1)->dateTimeISO);
+        static::assertSame('2018-01-02 16:38:14', (clone $time)->modifyTime(25, 1, 1)->dateTimeISO);
+        static::assertSame('2017-12-31 14:36:12', (clone $time)->modifyTime(-25, -1, -1)->dateTimeISO);
     }
 
     /**
@@ -321,12 +321,12 @@ class TimeTest extends TestCase
         // When baseline is non-UTC: use verbatim clone.
         $first = (new Time('2019-02-01', new \DateTimeZone(BootstrapTest::TIMEZONE)))->setToDateStart();
         $last = (new Time('2019-03-01', new \DateTimeZone('UTC')))->setToDateStart();
-        static::assertSame(1, $first->diffTime($last, true)->totalMonths);
+        static::assertSame(1, $first->diffTime($last)->totalMonths);
 
         // When deviant is non-UTC (and base is UTC), move deviant into UTC.
         $first = (new Time('2019-02-01', new \DateTimeZone('UTC')))->setToDateStart();
         $last = (new Time('2019-03-01', new \DateTimeZone(BootstrapTest::TIMEZONE)))->setToDateStart();
-        static::assertSame(0, $first->diffTime($last, true)->totalMonths);
+        static::assertSame(0, $first->diffTime($last)->totalMonths);
 
         /**
          * Throws exception because the two dates don't have the same timezone,
@@ -334,7 +334,7 @@ class TimeTest extends TestCase
          * @see \SimpleComplex\Time\Time::diffTime()
          */
         $this->expectException(\RuntimeException::class);
-        static::assertSame(0, $first->diffTime($last, false)->totalMonths);
+        static::assertSame(0, $first->diffTime($last)->totalMonths);
     }
 
     public static function testResolve()
@@ -402,17 +402,17 @@ class TimeTest extends TestCase
         static::assertTrue($ceil->getTimestamp() % 2 == 0, 'getTimestamp() floors microseconds');
         static::assertSame(1577880000, $ceil->getTimestamp(), 'ceilable truncated');
 
-        static::assertSame(1577880000, $floor->toUnixSeconds(), 'floorable floored');
-        static::assertSame(1577880001, $ceil->toUnixSeconds(), 'ceilable ceiled');
+        static::assertSame(1577880000, $floor->unixSeconds, 'floorable floored');
+        static::assertSame(1577880001, $ceil->unixSeconds, 'ceilable ceiled');
 
 
         // Milli/microseconds methods aren't exact, because floats.
 
-        static::assertTrue(abs(1577880000400 - $floor->toUnixMilliseconds()) < 10, 'floorable milliseconds');
-        static::assertTrue(abs(1577880000900 - $ceil->toUnixMilliseconds()) < 10, 'ceilable milliseconds');
+        static::assertTrue(abs(1577880000400 - $floor->unixMilliseconds) < 10, 'floorable milliseconds');
+        static::assertTrue(abs(1577880000900 - $ceil->unixMilliseconds) < 10, 'ceilable milliseconds');
 
-        static::assertTrue(abs(1577880000400000 - $floor->toUnixMicroseconds()) < 10, 'floorable microseconds');
-        static::assertTrue(abs(1577880000900000 - $ceil->toUnixMicroseconds()) < 10, 'ceilable microseconds');
+        static::assertTrue(abs(1577880000400000 - $floor->unixMicroseconds) < 10, 'floorable microseconds');
+        static::assertTrue(abs(1577880000900000 - $ceil->unixMicroseconds) < 10, 'ceilable microseconds');
     }
 
 

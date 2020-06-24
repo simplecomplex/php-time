@@ -9,7 +9,7 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 ### Added
 * Forked from simplecomplex/utils (v2.3) time classes.
 * diffDate() works correctly with non-UTC timezones, returns \DateInterval.
-* Getters toUnixSeconds|toUnixMilliseconds|toUnixMicroseconds(), which contrary
+* Properties unixSeconds|unixMilliseconds|unixMicroseconds, which contrary
 to \DateTime.getTimestamp() rounds microseconds; instead of floor'ing.
 
 ### Changed
@@ -22,6 +22,8 @@ extending Utils\Explorable.
 effectively constant, by itself).
 * diffTime() replaces diffConstant(), the latter now deprecated.
 * TimeInterval::getDateInterval() replaces getMutable(); now deprecated.
+* Properties for time parts and simple no-zone ISO patterns replace methods;
+like ->month (->getMonth()) and ->dateISO (->getDateISO).
 * Changelog in standard keepachangelog format; previous was idiosyncratic.
 
 ### Fixed
