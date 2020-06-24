@@ -64,7 +64,7 @@ class TimeInterval implements ExplorableInterface
     use ExplorableDumpTrait;
 
     /**
-     * @see \SimpleComplex\Explorable\Explorable
+     * @see \SimpleComplex\Explorable\Explorable::explorablePrepare()
      */
     const EXPLORABLE_VISIBLE = [
         // \DateInterval.
@@ -87,7 +87,7 @@ class TimeInterval implements ExplorableInterface
     ];
 
     /**
-     * @see \SimpleComplex\Explorable\Explorable
+     * @see \SimpleComplex\Explorable\Explorable::explorablePrepare()
      */
     const EXPLORABLE_HIDDEN = [];
 

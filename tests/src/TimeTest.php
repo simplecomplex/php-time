@@ -357,15 +357,15 @@ class TimeTest extends TestCase
 
         $t = Time::resolve(0);
         static::assertInstanceOf(Time::class, $t);
-        static::assertSame('1970-01-01T00:00:00Z', $t->toISOUTC());
+        static::assertSame('1970-01-01T00:00:00.000000Z', $t->toISOUTC());
 
         $t = Time::resolve(0, true);
         static::assertInstanceOf(Time::class, $t);
-        static::assertSame('1970-01-01T00:00:00Z', $t->toISOUTC());
+        static::assertSame('1970-01-01T00:00:00.000000Z', $t->toISOUTC());
 
         $t = Time::resolve(-1);
         static::assertInstanceOf(Time::class, $t);
-        static::assertSame('1969-12-31T23:59:59Z', $t->toISOUTC());
+        static::assertSame('1969-12-31T23:59:59.000000Z', $t->toISOUTC());
 
         $t = Time::resolve($datetime_utc);
         static::assertInstanceOf(Time::class, $t);
@@ -375,7 +375,7 @@ class TimeTest extends TestCase
         // Bad URL encoding; + transformed to space.
         $t = Time::resolve('2019-04-05T10:14:47 02:00');
         static::assertInstanceOf(Time::class, $t);
-        static::assertSame('2019-04-05T10:14:47+02:00', $t->toISOZonal());
+        static::assertSame('2019-04-05T10:14:47.000000+02:00', $t->toISOZonal());
     }
 
 
@@ -429,23 +429,23 @@ class TimeTest extends TestCase
         static::assertSame(12, $immutable->diffTime($mutated)->totalMonths);
     }
 
-    public function testJsonSerilizationPrecision()
+    public function testSubSecondPrecision()
     {
         date_default_timezone_set(BootstrapTest::TIMEZONE);
 
-        $mutable = new Time('2020-01-01 00:00:00.001002');
-        static::assertSame('"2020-01-01T00:00:00+01:00"', json_encode($mutable));
-        $mutable->setJsonSerializePrecision('milliseconds');
-        static::assertSame('"2020-01-01T00:00:00.001+01:00"', json_encode($mutable));
-        $mutable->setJsonSerializePrecision('microseconds');
-        static::assertSame('"2020-01-01T00:00:00.001002+01:00"', json_encode($mutable));
+        $time = new Time('2020-01-01 00:00:00.001002');
 
-        $immutable = new TimeImmutable('2020-01-01 00:00:00.001002');
-        static::assertSame('"2020-01-01T00:00:00+01:00"', json_encode($immutable));
-        $immutable = $immutable->setJsonSerializePrecision('milliseconds');
-        static::assertSame('"2020-01-01T00:00:00.001+01:00"', json_encode($immutable));
-        $immutable = $immutable->setJsonSerializePrecision('microseconds');
-        static::assertSame('"2020-01-01T00:00:00.001002+01:00"', json_encode($immutable));
+        static::assertSame('"2020-01-01T00:00:00.001+01:00"', json_encode($time), 'json subsecond precision');
+
+        static::assertSame('2020-01-01T00:00:00.001002+01:00', $time->toISOZonal(), 'iso zonal subsecond default');
+        static::assertSame('2020-01-01T00:00:00.001002+01:00', $time->toISOZonal('micro'), 'iso zonal subsecond micro');
+        static::assertSame('2020-01-01T00:00:00.001+01:00', $time->toISOZonal('milli'), 'iso zonal subsecond milli');
+        static::assertSame('2020-01-01T00:00:00+01:00', $time->toISOZonal('none'), 'iso zonal subsecond none');
+
+        static::assertSame('2019-12-31T23:00:00.001002Z', $time->toISOUTC(), 'iso utc subsecond default');
+        static::assertSame('2019-12-31T23:00:00.001002Z', $time->toISOUTC('micro'), 'iso utc subsecond micro');
+        static::assertSame('2019-12-31T23:00:00.001Z', $time->toISOUTC('milli'), 'iso utc subsecond milli');
+        static::assertSame('2019-12-31T23:00:00Z', $time->toISOUTC('none'), 'iso utc subsecond none');
     }
 
     /**

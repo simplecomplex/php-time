@@ -338,30 +338,4 @@ class TimeImmutable extends Time
             ->modifyTime($hours, $minutes = 0, $seconds, $microseconds);
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @throws \InvalidArgumentException
-     *      Arg precision not empty or milliseconds|microseconds.
-     * @throws \Exception
-     *      Propagated; \DateTime constructor.
-     */
-    public function setJsonSerializePrecision(string $precision) : Time
-    {
-        // Setting a simple property doesn't produce perpetual loop;
-        // as calling method on clone would.
-        $t = clone $this;
-
-        switch ($precision) {
-            case '':
-            case 'milliseconds':
-            case 'microseconds':
-                $t->jsonSerializePrecision = $precision;
-                return $t;
-        }
-        throw new \InvalidArgumentException(
-            'Arg precision[' . $precision . '] isn\'t empty or value milliseconds|microseconds.'
-        );
-    }
 }

@@ -24,6 +24,11 @@ effectively constant, by itself).
 * TimeInterval::getDateInterval() replaces getMutable(); now deprecated.
 * Properties for time parts and simple no-zone ISO patterns replace methods;
 like ->month (->getMonth()) and ->dateISO (->getDateISO).
+* toISOZonal|toISOUTC() default to subseconds precision micro (was none),  
+and jsonSerialize() default to subseconds precision milli (was none).  
+Native DateTime's microseconds support was incomplete until PHP 7.1;
+around the time this library was begun.
+* Time::setJsonSerializePrecision() removed; no deprecation parachute, was daft.
 * Changelog in standard keepachangelog format; previous was idiosyncratic.
 
 ### Fixed

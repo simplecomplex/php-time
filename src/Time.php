@@ -93,6 +93,25 @@ class Time extends \DateTime implements \JsonSerializable
     ];
 
     /**
+     * Default subsecond precision of full ISO 8601 formats.
+     *
+     * @see Time::toISOZonal()
+     * @see Time::toISOUTC()
+     *
+     * @var string
+     *      Supported values: none|milli|micro.
+     */
+    public const ISO_SUBSECOND_PRECISION = 'micro';
+
+    /**
+     * Subsecond precision of JSON serialization format.
+     *
+     * @var string
+     *      Supported values: none|milli|micro.
+     */
+    public const JSON_SUBSECOND_PRECISION = 'milli';
+
+    /**
      * Local (default) timezone object.
      *
      * Gets established once; first time a Time object is constructed.
@@ -139,16 +158,6 @@ class Time extends \DateTime implements \JsonSerializable
      * @var bool|null
      */
     protected $timezoneIsLocal;
-
-    /**
-     * Values: (empty)|milliseconds|microseconds; default empty.
-     *
-     * @see Time::jsonSerialize()
-     * @see Time::setJsonSerializePrecision()
-     *
-     * @var string
-     */
-    protected $jsonSerializePrecision = '';
 
     /**
      * Freezable.
@@ -1328,52 +1337,55 @@ class Time extends \DateTime implements \JsonSerializable
     }
 
     /**
-     * To ISO-8601 with timezone marker, optionally with milli- or microseconds
-     * precision.
+     * To ISO-8601 with timezone marker.
      *
      * Formats:
      * YYYY-MM-DDTHH:ii:ss+HH:II
      * YYYY-MM-DDTHH:ii:ss.mmm+HH:II
      * YYYY-MM-DDTHH:ii:ss.mmmmmm+HH:II
      *
-     * Same as:
+     * @see Time::ISO_SUBSECOND_PRECISION
      * @see Time::__toString().
      *
-     * @param string $precision
-     *      Values: (empty)|milliseconds|microseconds.
-     *      Default: empty; with neither milli- nor microseconds.
+     * @param string|null $subSecondPrecision
+     *      Values: none|milli|micro.
+     *      Default: static::ISO_SUBSECOND_PRECISION.
      *
      * @return string
      *
      * @throws \InvalidArgumentException
      *      Arg precision not empty or milliseconds|microseconds.
      */
-    public function toISOZonal(string $precision = '') : string
+    public function toISOZonal(?string $subSecondPrecision = null) : string
     {
+        $precision = $subSecondPrecision ?? static::ISO_SUBSECOND_PRECISION;
+
+        $str = $this->format('c');
         switch ($precision) {
-            case '':
-                $minor = '';
-                break;
-            case 'milliseconds':
-                $minor = '.' . $this->format('v');
-                break;
+            case 'micro':
             case 'microseconds':
+                // 'microseconds' for backwards compatibility.
                 $minor = '.' . $this->format('u');
                 break;
+            case 'milli':
+            case 'milliseconds':
+                // 'milliseconds' for backwards compatibility.
+                $minor = '.' . $this->format('v');
+                break;
+            case 'none':
+            case '':
+                // '' for backwards compatibility.
+                return $str;
             default:
                 throw new \InvalidArgumentException(
-                    'Arg precision[' . $precision . '] isn\'t empty or value milliseconds|microseconds.'
+                    'Arg subSecondPrecision[' . $subSecondPrecision . '] isn\'t none|milli|micro.'
                 );
         }
-        if (!$precision) {
-            return $this->format('c');
-        }
-        $str = $this->format('c');
         return substr($str, 0, -6) . $minor . substr($str, -6);
     }
 
     /**
-     * To ISO-8601 UTC, optionally with milli- or microseconds precision.
+     * To ISO-8601 UTC.
      *
      * Formats:
      * YYYY-MM-DDTHH:ii:ssZ
@@ -1382,9 +1394,11 @@ class Time extends \DateTime implements \JsonSerializable
      *
      * Like Javascript Date.toISOString(); when milliseconds precision.
      *
-     * @param string $precision
-     *      Values: (empty)|milliseconds|microseconds.
-     *      Default: empty; with neither milli- nor microseconds.
+     * @see Time::ISO_SUBSECOND_PRECISION
+     *
+     * @param string|null $subSecondPrecision
+     *      Values: none|milli|micro.
+     *      Default: static::ISO_SUBSECOND_PRECISION.
      *
      * @return string
      *
@@ -1393,21 +1407,29 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::setTimezone().
      */
-    public function toISOUTC(string $precision = '') : string
+    public function toISOUTC(?string $subSecondPrecision = null) : string
     {
+        $precision = $subSecondPrecision ?? static::ISO_SUBSECOND_PRECISION;
+
         switch ($precision) {
-            case '':
-                $minor = '';
+            case 'micro':
+            case 'microseconds':
+                // 'microseconds' for backwards compatibility.
+                $minor = '.' . $this->format('u');
                 break;
+            case 'milli':
             case 'milliseconds':
+                // 'milliseconds' for backwards compatibility.
                 $minor = '.' . $this->format('v');
                 break;
-            case 'microseconds':
-                $minor = '.' . $this->format('u');
+            case 'none':
+            case '':
+                // '' for backwards compatibility.
+                $minor = '';
                 break;
             default:
                 throw new \InvalidArgumentException(
-                    'Arg precision[' . $precision . '] isn\'t empty or value milliseconds|microseconds.'
+                    'Arg subSecondPrecision[' . $subSecondPrecision . '] isn\'t none|milli|micro.'
                 );
         }
         return substr(
@@ -1418,7 +1440,7 @@ class Time extends \DateTime implements \JsonSerializable
     }
 
     /**
-     * Format to YYYY-MM-DDTHH:ii:ss+HH:II
+     * Format to YYYY-MM-DDTHH:ii:ss.mmmmmm+HH:II
      *
      * Same as:
      * @see Time::toISOZonal().
@@ -1427,41 +1449,7 @@ class Time extends \DateTime implements \JsonSerializable
      */
     public function __toString() : string
     {
-        return $this->format('c');
-    }
-
-    /**
-     * Set precision of JSON serialized representation.
-     *
-     * @see Time::jsonSerialize()
-     * @see \JsonSerializable
-     *
-     * @param string $precision
-     *      Values: (empty)|milliseconds|microseconds.
-     *      Default: empty; with neither milli- nor microseconds.
-     *
-     * @return $this|Time
-     *
-     * @throws \RuntimeException
-     *      Frozen.
-     * @throws \InvalidArgumentException
-     *      Arg precision not empty or milliseconds|microseconds.
-     */
-    public function setJsonSerializePrecision(string $precision) : Time
-    {
-        if ($this->frozen) {
-            throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
-        }
-        switch ($precision) {
-            case '':
-            case 'milliseconds':
-            case 'microseconds':
-                $this->jsonSerializePrecision = $precision;
-                return $this;
-        }
-        throw new \InvalidArgumentException(
-            'Arg precision[' . $precision . '] isn\'t empty or value milliseconds|microseconds.'
-        );
+        return $this->toISOZonal();
     }
 
     /**
@@ -1471,14 +1459,15 @@ class Time extends \DateTime implements \JsonSerializable
      * which is great when communicating with other PHP base node,
      * but a nuisance when communicating with anything else.
      *
-     * @see Time::setJsonSerializePrecision()
+     * @see Time::JSON_SUBSECOND_PRECISION
+     * @see Time::toISOZonal()
      * @see \JsonSerializable
      *
      * @return string
      */
     public function jsonSerialize()
     {
-        return $this->toISOZonal($this->jsonSerializePrecision);
+        return $this->toISOZonal(static::JSON_SUBSECOND_PRECISION);
     }
 
     /**
