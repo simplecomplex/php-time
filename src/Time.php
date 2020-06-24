@@ -167,7 +167,7 @@ class Time extends \DateTime implements \JsonSerializable
     protected $frozen = false;
 
 
-    // Inherited methods.-------------------------------------------------------
+    // Methods inherited from \DateTime.----------------------------------------
 
     /**
      * Checks whether the new object's timezone matches local (default) timezone.
@@ -634,6 +634,16 @@ class Time extends \DateTime implements \JsonSerializable
     }
 
     /**
+     * Helper for immutable extending class.
+     *
+     * @return Time
+     */
+    protected function cloneToMutable() : Time
+    {
+        return clone $this;
+    }
+
+    /**
      * Get as native \DateTime.
      *
      * @return \DateTime
@@ -770,7 +780,7 @@ class Time extends \DateTime implements \JsonSerializable
             $baseline = $this;
         } else {
             $tz_utc = new \DateTimeZone('UTC');
-            $baseline = (clone $this)->setTimezone($tz_utc);
+            $baseline = $this->cloneToMutable()->setTimezone($tz_utc);
         }
 
         $subject_tz_name = $dateTime->getTimezone()->getName();
@@ -784,7 +794,8 @@ class Time extends \DateTime implements \JsonSerializable
             );
         }
         else {
-            $subject = (clone $dateTime)->setTimezone($tz_utc ?? $tz_utc = new \DateTimeZone('UTC'));
+            $subject = $dateTime instanceof Time ? $dateTime->cloneToMutable() : clone $dateTime;
+            $subject->setTimezone($tz_utc ?? $tz_utc = new \DateTimeZone('UTC'));
         }
 
         return $baseline->diff($subject);
@@ -1297,7 +1308,7 @@ class Time extends \DateTime implements \JsonSerializable
         if ($this->timezoneIsLocal) {
             return $this->format('Y-m-d');
         }
-        return (clone $this)->setTimezone(static::$timezoneLocal)->format('Y-m-d');
+        return $this->cloneToMutable()->setTimezone(static::$timezoneLocal)->format('Y-m-d');
     }
 
     /**
@@ -1315,7 +1326,7 @@ class Time extends \DateTime implements \JsonSerializable
         if ($this->timezoneIsLocal) {
             return $this->format('H:i:s');
         }
-        return (clone $this)->setTimezone(static::$timezoneLocal)->format('H:i:s');
+        return $this->cloneToMutable()->setTimezone(static::$timezoneLocal)->format('H:i:s');
     }
 
     /**
@@ -1333,7 +1344,7 @@ class Time extends \DateTime implements \JsonSerializable
         if ($this->timezoneIsLocal) {
             return $this->format('Y-m-d H:i:s');
         }
-        return (clone $this)->setTimezone(static::$timezoneLocal)->format('Y-m-d H:i:s');
+        return $this->cloneToMutable()->setTimezone(static::$timezoneLocal)->format('Y-m-d H:i:s');
     }
 
     /**
@@ -1433,7 +1444,7 @@ class Time extends \DateTime implements \JsonSerializable
                 );
         }
         return substr(
-                (clone $this)->setTimezone(new \DateTimeZone('UTC'))->format('c'),
+                $this->cloneToMutable()->setTimezone(new \DateTimeZone('UTC'))->format('c'),
                 0,
                 -6
             ) . $minor . 'Z';

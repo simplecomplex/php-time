@@ -75,7 +75,7 @@ class TimeImmutable extends Time
      */
 
 
-    // Inherited methods.-------------------------------------------------------
+    // Methods inherited ultimately from \DateTime.-----------------------------
 
     /**
      * Checks whether the new object's timezone matches local (default) timezone.
@@ -100,8 +100,7 @@ class TimeImmutable extends Time
     public function add(/*\DateInterval*/ $interval) : \DateTime /*self invariant*/
     {
         // Use intermediate Time; cloning would result in perpetual loop.
-        $t = (new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone()))
-            ->add($interval);
+        $t = $this->cloneToMutable()->add($interval);
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
 
@@ -131,8 +130,7 @@ class TimeImmutable extends Time
      */
     public function modify($modify) : \DateTime /*self invariant*/
     {
-        $t = (new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone()))
-            ->modify($modify);
+        $t = $this->cloneToMutable()->modify($modify);
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
 
@@ -146,8 +144,7 @@ class TimeImmutable extends Time
      */
     public function setDate($year, $month, $day) : \DateTime /*self invariant*/
     {
-        $t = (new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone()))
-            ->setDate($year, $month, $day);
+        $t = $this->cloneToMutable()->setDate($year, $month, $day);
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
 
@@ -156,8 +153,7 @@ class TimeImmutable extends Time
      */
     public function setISODate($year, $week, $day = 1) : \DateTime /*self invariant*/
     {
-        $t = (new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone()))
-            ->setIsoDate($year, $week, $day);
+        $t = $this->cloneToMutable()->setIsoDate($year, $week, $day);
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
 
@@ -166,8 +162,7 @@ class TimeImmutable extends Time
      */
     public function setTime($hour, $minute, $second = 0, $microseconds = 0) : \DateTime /*self invariant*/
     {
-        $t = (new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone()))
-            ->setTime($hour, $minute, $second, $microseconds);
+        $t = $this->cloneToMutable()->setTime($hour, $minute, $second, $microseconds);
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
 
@@ -176,8 +171,7 @@ class TimeImmutable extends Time
      */
     public function setTimestamp($unixtimestamp) : \DateTime /*self invariant*/
     {
-        $t = (new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone()))
-            ->setTimestamp($unixtimestamp);
+        $t = $this->cloneToMutable()->setTimestamp($unixtimestamp);
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
 
@@ -186,8 +180,7 @@ class TimeImmutable extends Time
      */
     public function setTimezone($timezone) : \DateTime /*self invariant*/
     {
-        $t = (new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone()))
-            ->setTimezone($timezone);
+        $t = $this->cloneToMutable()->setTimezone($timezone);
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
 
@@ -201,13 +194,12 @@ class TimeImmutable extends Time
         // Catch 22: Specs say that native \DateTime method is type hinted,
         // but warning when cloning says it isn't.
 
-        $t = (new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone()))
-            ->sub($interval);
+        $t = $this->cloneToMutable()->sub($interval);
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
 
 
-    // Own methods.-------------------------------------------------------------
+    // Methods inherited from Time.---------------------------------------------
 
     // Statics.---------------------------------------------
 
@@ -230,12 +222,29 @@ class TimeImmutable extends Time
             }
             return new static($time->format('Y-m-d H:i:s.u'), $time->getTimezone());
         }
-        // Time::resolve() uses new static().
+        /**
+         * Let inherited handle \DateTime and not \DateTimeInterface.
+         * And Time::resolve() uses new static().
+         * @see Time::resolve()
+         */
         return parent::resolve($time, $keepForeignTimezone);
     }
 
 
     // Instance general.------------------------------------
+
+    /**
+     * Helper for immutable extending class (like this).
+     *
+     * @return Time
+     *
+     * @throws \Exception
+     *      Propagated; \DateTime constructor.
+     */
+    protected function cloneToMutable() : Time
+    {
+        return new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone());
+    }
 
     /**
      * Get as Time.
@@ -247,7 +256,7 @@ class TimeImmutable extends Time
      */
     public function toTime() : Time
     {
-        return new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone());
+        return $this->cloneToMutable();
     }
 
     /**
@@ -267,8 +276,7 @@ class TimeImmutable extends Time
      */
     public function setTimezoneToLocal() : \DateTime /*self invariant*/
     {
-        $t = (new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone()))
-            ->setTimezoneToLocal();
+        $t = $this->cloneToMutable()->setTimezoneToLocal();
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
 
@@ -284,8 +292,7 @@ class TimeImmutable extends Time
      */
     public function setToDateStart() : Time
     {
-        $t = (new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone()))
-            ->setToDateStart();
+        $t = $this->cloneToMutable()->setToDateStart();
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
 
@@ -294,8 +301,7 @@ class TimeImmutable extends Time
      */
     public function setToFirstDayOfMonth(int $month = null) : Time
     {
-        $t = (new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone()))
-            ->setToFirstDayOfMonth();
+        $t = $this->cloneToMutable()->setToFirstDayOfMonth();
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
 
@@ -304,8 +310,7 @@ class TimeImmutable extends Time
      */
     public function setToLastDayOfMonth(int $month = null) : Time
     {
-        $t = (new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone()))
-            ->setToLastDayOfMonth();
+        $t = $this->cloneToMutable()->setToLastDayOfMonth();
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
 
@@ -314,8 +319,7 @@ class TimeImmutable extends Time
      */
     public function modifySafely(string $modify) : Time
     {
-        $t = (new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone()))
-            ->modifySafely($modify);
+        $t = $this->cloneToMutable()->modifySafely($modify);
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
 
@@ -324,8 +328,7 @@ class TimeImmutable extends Time
      */
     public function modifyDate(int $years, int $months = 0, int $days = 0) : Time
     {
-        $t = (new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone()))
-            ->modifyDate($years, $months = 0, $days);
+        $t = $this->cloneToMutable()->modifyDate($years, $months = 0, $days);
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
 
@@ -334,8 +337,7 @@ class TimeImmutable extends Time
      */
     public function modifyTime(int $hours, int $minutes = 0, int $seconds = 0, int $microseconds = 0) : Time
     {
-        $t = (new Time($this->format('Y-m-d H:i:s.u'), $this->getTimezone()))
-            ->modifyTime($hours, $minutes = 0, $seconds, $microseconds);
+        $t = $this->cloneToMutable()->modifyTime($hours, $minutes = 0, $seconds, $microseconds);
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
 }
