@@ -29,6 +29,16 @@ namespace SimpleComplex\Time;
  *
  * @see TimeInterval
  *
+ *
+ * @property-read int $year
+ * @property-read int $month
+ * @property-read int $date
+ * @property-read int $hours
+ * @property-read int $minutes
+ * @property-read int $seconds
+ * @property-read int $milliseconds
+ * @property-read int $microseconds
+ *
  * @package SimpleComplex\Time
  */
 class Time extends \DateTime implements \JsonSerializable
@@ -1106,91 +1116,162 @@ class Time extends \DateTime implements \JsonSerializable
     }
 
     /**
-     * Get full (YYYY) year.
+     * Format by time part name.
      *
-     * Beware that timezone (unlike Javascript) may not be local.
-     * @see TimeLocal
+     * Final, this class accesses the constant via self::, not static::.
      *
-     * @return int
+     * @var string[]
      */
-    public function getYear() : int
+    public const TIME_PART_FORMAT = [
+        'year' => 'Y',
+        'month' => 'm',
+        'date' => 'd',
+        'hours' => 'H',
+        'minutes' => 'i',
+        'seconds' => 's',
+        'milliseconds' => 'v',
+        'microseconds' => 'u',
+    ];
+
+    /**
+     * @param string $key
+     *
+     * @return mixed
+     *
+     * @throws \OutOfBoundsException
+     *      No such property.
+     */
+    public function __get(string $key)
     {
-        return (int) $this->format('Y');
+        $format = self::TIME_PART_FORMAT[$key] ?? null;
+        if ($format) {
+            return (int) $this->format($format);
+        }
+        // Try parent.
+        if (method_exists('\\DateTime', '__get')) {
+            return call_user_func(['parent', '__get'], $key);
+        }
+        throw new \OutOfBoundsException(get_class($this) . ' instance exposes no property[' . $key . '].');
     }
 
     /**
-     * Beware that timezone (unlike Javascript) may not be local.
-     * @see TimeLocal
+     * @param $name
+     * @param $arguments
      *
-     * @return int
+     * @return mixed
+     *
+     * @throws \BadMethodCallException
+     *      No such method.
      */
-    public function getMonth() : int
+    public function __call($name, $arguments)
     {
-        return (int) $this->format('m');
+        if (strpos($name, 'get') === 0) {
+            $parts = array_keys(self::TIME_PART_FORMAT);
+            foreach ($parts as $part) {
+                $method = 'get' . ucfirst($part);
+                if ($name == $method) {
+                    @trigger_error(
+                        __CLASS__ . '::' . $name . ' method is deprecated and will be removed soon'
+                        . ' , use instance property[' . $part . '] instead.',
+                        E_USER_DEPRECATED
+                    );
+                    return $this->__get($method);
+                }
+            }
+        }
+        // Try parent.
+        if (method_exists('\\DateTime', '__call')) {
+            return call_user_func(['parent', '__call'], $name, $arguments);
+        }
+        throw new \BadMethodCallException( 'Class' . __CLASS__ . ' has no method[' . $name . '].');
     }
 
-    /**
-     * Beware that timezone (unlike Javascript) may not be local.
-     * @see TimeLocal
-     *
-     * @return int
-     */
-    public function getDate() : int
-    {
-        return (int) $this->format('d');
-    }
-
-    /**
-     * Beware that timezone (unlike Javascript) may not be local.
-     * @see TimeLocal
-     *
-     * @return int
-     */
-    public function getHours() : int
-    {
-        return (int) $this->format('H');
-    }
-
-    /**
-     * Beware that timezone (unlike Javascript) may not be local.
-     * @see TimeLocal
-     *
-     * @return int
-     */
-    public function getMinutes() : int
-    {
-        return (int) $this->format('i');
-    }
-
-    /**
-     * Timezone independent.
-     *
-     * @return int
-     */
-    public function getSeconds() : int
-    {
-        return (int) $this->format('s');
-    }
-
-    /**
-     * Timezone independent.
-     *
-     * @return int
-     */
-    public function getMilliseconds() : int
-    {
-        return (int) $this->format('v');
-    }
-
-    /**
-     * Timezone independent.
-     *
-     * @return int
-     */
-    public function getMicroseconds() : int
-    {
-        return (int) $this->format('u');
-    }
+//    /**
+//     * Get full (YYYY) year.
+//     *
+//     * Beware that timezone (unlike Javascript) may not be local.
+//     * @see TimeLocal
+//     *
+//     * @return int
+//     */
+//    public function getYear() : int
+//    {
+//        return (int) $this->format('Y');
+//    }
+//
+//    /**
+//     * Beware that timezone (unlike Javascript) may not be local.
+//     * @see TimeLocal
+//     *
+//     * @return int
+//     */
+//    public function getMonth() : int
+//    {
+//        return (int) $this->format('m');
+//    }
+//
+//    /**
+//     * Beware that timezone (unlike Javascript) may not be local.
+//     * @see TimeLocal
+//     *
+//     * @return int
+//     */
+//    public function getDate() : int
+//    {
+//        return (int) $this->format('d');
+//    }
+//
+//    /**
+//     * Beware that timezone (unlike Javascript) may not be local.
+//     * @see TimeLocal
+//     *
+//     * @return int
+//     */
+//    public function getHours() : int
+//    {
+//        return (int) $this->format('H');
+//    }
+//
+//    /**
+//     * Beware that timezone (unlike Javascript) may not be local.
+//     * @see TimeLocal
+//     *
+//     * @return int
+//     */
+//    public function getMinutes() : int
+//    {
+//        return (int) $this->format('i');
+//    }
+//
+//    /**
+//     * Timezone independent.
+//     *
+//     * @return int
+//     */
+//    public function getSeconds() : int
+//    {
+//        return (int) $this->format('s');
+//    }
+//
+//    /**
+//     * Timezone independent.
+//     *
+//     * @return int
+//     */
+//    public function getMilliseconds() : int
+//    {
+//        return (int) $this->format('v');
+//    }
+//
+//    /**
+//     * Timezone independent.
+//     *
+//     * @return int
+//     */
+//    public function getMicroseconds() : int
+//    {
+//        return (int) $this->format('u');
+//    }
 
     /**
      * Format to Y-m-d, using the object's timezone.
