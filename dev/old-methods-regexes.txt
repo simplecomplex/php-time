@@ -1,0 +1,6 @@
+
+get(Year|Month|Date|Hours|Minutes|Seconds|Milliseconds|Microseconds)[ ]?\(\)
+
+(getDateISO|getTimeISO|getDateTimeISO)[ ]?\(
+
+(toDateISOLocal|toTimeISOLocal|toDateTimeISOLocal)[ ]?\(
