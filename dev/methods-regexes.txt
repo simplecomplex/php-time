@@ -2,5 +2,10 @@
 get(Year|Month|Date|Hours|Minutes|Seconds|Milliseconds|Microseconds)[ ]?\(\)
 
 (getDateISO|getTimeISO|getDateTimeISO)[ ]?\(
+(getDateISO|getTimeISO|getDateTimeISO)[ ]?\([^\)]
 
 (toDateISOLocal|toTimeISOLocal|toDateTimeISOLocal)[ ]?\(
+(toDateISOLocal|toTimeISOLocal|toDateTimeISOLocal)[ ]?\([^\)]
+
+(toISOZonal|toISOUTC)[ ]?\(
+(toISOZonal|toISOUTC)[ ]?\([^\)]

@@ -209,18 +209,21 @@ class Time extends \DateTime implements \JsonSerializable
         );
     }
 
-//    /**
-//     * PHP >=7.3
-//     *
-//     * @param \DateTimeImmutable $dateTimeImmutable
-//     * @return Time
-//     *
-//     * @throws \Exception
-//     */
-//    public static function createFromImmutable(\DateTimeImmutable $dateTimeImmutable) : Time
-//    {
-//        return new static($dateTimeImmutable->format('Y-m-d H:i:s.u'), $dateTimeImmutable->getTimezone());
-//    }
+    /**
+     * @param \DateTimeImmutable $dateTimeImmutable
+     * @return Time
+     *
+     * @throws \Exception
+     */
+    public static function createFromImmutable(\DateTimeImmutable $dateTimeImmutable) : Time
+    {
+        /**
+         * \DateTime hasn't got this method before PHP 7.3,
+         * but this implementation should work anyway.
+         * @see \DateTime::createFromImmutable()
+         */
+        return new static($dateTimeImmutable->format('Y-m-d H:i:s.u'), $dateTimeImmutable->getTimezone());
+    }
 
     /**
      * public static function getLastErrors() : array
@@ -1163,6 +1166,14 @@ class Time extends \DateTime implements \JsonSerializable
     }
 
     /**
+     * Handles methods which existed in simplecomplex/utils(time),
+     * now deprecated:
+     * - getYear, getMonth, getDate, getHours, getMinutes, getSeconds,
+     *   getMilliseconds, getMicroseconds
+     *
+     * Relays to
+     * @see Time::__get()
+     *
      * @param $name
      * @param $arguments
      *
@@ -1198,93 +1209,6 @@ class Time extends \DateTime implements \JsonSerializable
         }
         throw new \BadMethodCallException( 'Class ' . __CLASS__ . ' has no method[' . $name . '].');
     }
-
-//    /**
-//     * Get full (YYYY) year.
-//     *
-//     * Beware that timezone (unlike Javascript) may not be local.
-//     * @see TimeLocal
-//     *
-//     * @return int
-//     */
-//    public function getYear() : int
-//    {
-//        return (int) $this->format('Y');
-//    }
-//
-//    /**
-//     * Beware that timezone (unlike Javascript) may not be local.
-//     * @see TimeLocal
-//     *
-//     * @return int
-//     */
-//    public function getMonth() : int
-//    {
-//        return (int) $this->format('m');
-//    }
-//
-//    /**
-//     * Beware that timezone (unlike Javascript) may not be local.
-//     * @see TimeLocal
-//     *
-//     * @return int
-//     */
-//    public function getDate() : int
-//    {
-//        return (int) $this->format('d');
-//    }
-//
-//    /**
-//     * Beware that timezone (unlike Javascript) may not be local.
-//     * @see TimeLocal
-//     *
-//     * @return int
-//     */
-//    public function getHours() : int
-//    {
-//        return (int) $this->format('H');
-//    }
-//
-//    /**
-//     * Beware that timezone (unlike Javascript) may not be local.
-//     * @see TimeLocal
-//     *
-//     * @return int
-//     */
-//    public function getMinutes() : int
-//    {
-//        return (int) $this->format('i');
-//    }
-//
-//    /**
-//     * Timezone independent.
-//     *
-//     * @return int
-//     */
-//    public function getSeconds() : int
-//    {
-//        return (int) $this->format('s');
-//    }
-//
-//    /**
-//     * Timezone independent.
-//     *
-//     * @return int
-//     */
-//    public function getMilliseconds() : int
-//    {
-//        return (int) $this->format('v');
-//    }
-//
-//    /**
-//     * Timezone independent.
-//     *
-//     * @return int
-//     */
-//    public function getMicroseconds() : int
-//    {
-//        return (int) $this->format('u');
-//    }
 
     /**
      * Format to Y-m-d, using the object's timezone.
