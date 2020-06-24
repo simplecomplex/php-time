@@ -14,7 +14,7 @@ namespace SimpleComplex\Time;
  *
  * Uses intermediate Time instances for mutations.
  *
- * Freezing has no effect.
+ * Freezing has no effect, but is allowed.
  * @see Time::freeze()
  * @see Time::frozen()
  *
@@ -32,6 +32,17 @@ namespace SimpleComplex\Time;
  * the number of shortcomings and defects to be handled uncontrollably.
  * DateTimeImmutable is most likely even more flawed than DateTime, e.g.:
  * @see https://www.php.net/manual/en/class.datetimeimmutable.php#123543
+ *
+ *
+ * Interited from Time:
+ * @property-read int $year
+ * @property-read int $month
+ * @property-read int $date
+ * @property-read int $hours
+ * @property-read int $minutes
+ * @property-read int $seconds
+ * @property-read int $milliseconds
+ * @property-read int $microseconds
  *
  * @package SimpleComplex\Time
  */

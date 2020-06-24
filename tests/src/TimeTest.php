@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace SimpleComplex\Tests\Time;
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Error\Deprecated as PHPUnit_Error_Deprecated;
 
 use SimpleComplex\Time\Time;
 use SimpleComplex\Time\TimeImmutable;
@@ -46,6 +47,49 @@ class TimeTest extends TestCase
             static::assertFalse(Time::checkTimezoneDefault('UTC'));
             $this->expectException(\LogicException::class);
             Time::checkTimezoneDefault('UTC', true);
+        }
+    }
+
+    public function testMagicProperties()
+    {
+        date_default_timezone_set(BootstrapTest::TIMEZONE);
+
+        //error_reporting(E_ALL | E_DEPRECATED | E_USER_DEPRECATED);
+
+        $times = [
+            'Time' => new Time('2020-06-15 12:37:59.555555'),
+            'TimeImmutable' => new TimeImmutable('2020-06-15 12:37:59.555555'),
+        ];
+
+        foreach ($times as $class => $time) {
+            static::assertIsInt($time->year, '(' . $class . ')->year integer');
+            static::assertSame(2020, $time->year, '(' . $class . ')->year value');
+            static::assertSame(6, $time->month, '(' . $class . ')->month value');
+            static::assertSame(15, $time->date, '(' . $class . ')->date value');
+            static::assertSame(12, $time->hours, '(' . $class . ')->hours value');
+            static::assertSame(37, $time->minutes, '(' . $class . ')->minutes value');
+            static::assertSame(59, $time->seconds, '(' . $class . ')->seconds value');
+            static::assertSame(555, $time->milliseconds, '(' . $class . ')->milliseconds value');
+            static::assertSame(555555, $time->microseconds, '(' . $class . ')->microseconds value');
+            // Deprecated getYear() etc.
+            $this->expectDeprecation();
+            static::assertIsInt($time->{'getYear'}(), '(' . $class . ')->year integer');
+            $this->expectDeprecation();
+            static::assertSame(2020, $time->{'getYear'}(), '(' . $class . ')->year value');
+            $this->expectDeprecation();
+            static::assertSame(6, $time->{'getMonth'}(), '(' . $class . ')->month value');
+            $this->expectDeprecation();
+            static::assertSame(15, $time->{'getDate'}(), '(' . $class . ')->date value');
+            $this->expectDeprecation();
+            static::assertSame(12, $time->{'getHours'}(), '(' . $class . ')->hours value');
+            $this->expectDeprecation();
+            static::assertSame(37, $time->{'getMinutes'}(), '(' . $class . ')->minutes value');
+            $this->expectDeprecation();
+            static::assertSame(59, $time->{'getSeconds'}(), '(' . $class . ')->seconds value');
+            $this->expectDeprecation();
+            static::assertSame(555, $time->{'getMilliseconds'}(), '(' . $class . ')->milliseconds value');
+            $this->expectDeprecation();
+            static::assertSame(555555, $time->microseconds, '(' . $class . ')->microseconds value');
         }
     }
 

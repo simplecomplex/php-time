@@ -29,7 +29,8 @@ namespace SimpleComplex\Time;
  *
  * @see TimeInterval
  *
- *
+ * Magically accessible properties:
+ * @see Time::__get()
  * @property-read int $year
  * @property-read int $month
  * @property-read int $date
@@ -43,6 +44,24 @@ namespace SimpleComplex\Time;
  */
 class Time extends \DateTime implements \JsonSerializable
 {
+    /**
+     * Format by time part name.
+     *
+     * Final, this class accesses the constant via self::, not static::.
+     *
+     * @var string[]
+     */
+    public const TIME_PART_FORMAT = [
+        'year' => 'Y',
+        'month' => 'm',
+        'date' => 'd',
+        'hours' => 'H',
+        'minutes' => 'i',
+        'seconds' => 's',
+        'milliseconds' => 'v',
+        'microseconds' => 'u',
+    ];
+
     /**
      * Local (default) timezone object.
      *
@@ -586,9 +605,12 @@ class Time extends \DateTime implements \JsonSerializable
     }
 
     /**
-     * Chainable.
-     *
      * Time is Freezable.
+     *
+     * IMPORTANT: Clones are always unfrozen.
+     * @see Time::__clone()
+     *
+     * Chainable.
      *
      * @return $this|Time
      */
@@ -760,7 +782,8 @@ class Time extends \DateTime implements \JsonSerializable
      */
     public function diffConstant(\DateTimeInterface $dateTime) : TimeInterval
     {
-        @trigger_error(
+        // Not @trigger_error() because important.
+        trigger_error(
             __CLASS__ . '::' . __METHOD__
             . ' method is deprecated and will be removed soon, use diffTime instead.',
             E_USER_DEPRECATED
@@ -1116,24 +1139,6 @@ class Time extends \DateTime implements \JsonSerializable
     }
 
     /**
-     * Format by time part name.
-     *
-     * Final, this class accesses the constant via self::, not static::.
-     *
-     * @var string[]
-     */
-    public const TIME_PART_FORMAT = [
-        'year' => 'Y',
-        'month' => 'm',
-        'date' => 'd',
-        'hours' => 'H',
-        'minutes' => 'i',
-        'seconds' => 's',
-        'milliseconds' => 'v',
-        'microseconds' => 'u',
-    ];
-
-    /**
      * @param string $key
      *
      * @return mixed
@@ -1143,12 +1148,16 @@ class Time extends \DateTime implements \JsonSerializable
      */
     public function __get(string $key)
     {
+        /**
+         * Final; self not static.
+         * @see Time::TIME_PART_FORMAT
+         */
         $format = self::TIME_PART_FORMAT[$key] ?? null;
         if ($format) {
             return (int) $this->format($format);
         }
         // Try parent.
-        if (method_exists('\\DateTime', '__get')) {
+        if (method_exists(\DateTime::class, '__get')) {
             return call_user_func(['parent', '__get'], $key);
         }
         throw new \OutOfBoundsException(get_class($this) . ' instance exposes no property[' . $key . '].');
@@ -1166,24 +1175,29 @@ class Time extends \DateTime implements \JsonSerializable
     public function __call($name, $arguments)
     {
         if (strpos($name, 'get') === 0) {
+            /**
+             * Final; self not static.
+             * @see Time::TIME_PART_FORMAT
+             */
             $parts = array_keys(self::TIME_PART_FORMAT);
             foreach ($parts as $part) {
                 $method = 'get' . ucfirst($part);
                 if ($name == $method) {
-                    @trigger_error(
+                    // Not @trigger_error() because important.
+                    trigger_error(
                         __CLASS__ . '::' . $name . ' method is deprecated and will be removed soon'
-                        . ' , use instance property[' . $part . '] instead.',
+                        . ', use instance property[' . $part . '] instead.',
                         E_USER_DEPRECATED
                     );
-                    return $this->__get($method);
+                    return $this->__get($part);
                 }
             }
         }
         // Try parent.
-        if (method_exists('\\DateTime', '__call')) {
+        if (method_exists(\DateTime::class, '__call')) {
             return call_user_func(['parent', '__call'], $name, $arguments);
         }
-        throw new \BadMethodCallException( 'Class' . __CLASS__ . ' has no method[' . $name . '].');
+        throw new \BadMethodCallException( 'Class ' . __CLASS__ . ' has no method[' . $name . '].');
     }
 
 //    /**
