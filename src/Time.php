@@ -27,7 +27,6 @@ namespace SimpleComplex\Time;
  * Computation based on offset will go wrong whenever one date is in summer time
  * and another isn't.
  *
- * @see TimeInterval
  *
  * Magically accessible properties:
  * @see Time::__get()
@@ -198,7 +197,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::createFromFormat().
      */
-    public static function createFromFormat($format, $time, /*\DateTimeZone*/ $timezone = null) : Time
+    public static function createFromFormat($format, $time, /*?\DateTimeZone*/ $timezone = null) : Time
     {
         // NB: Argument type hinting (\DateTimeZone $timezone)
         // would provoke E_WARNING.
@@ -1090,7 +1089,7 @@ class Time extends \DateTime implements \JsonSerializable
      */
     public function monthLengthDays(int $month = null, int $year = null) : int
     {
-        $mnth = $month ?? $this->getMonth();
+        $mnth = $month ?? $this->format('m');
         switch ($mnth) {
             case 1:
             case 3:
