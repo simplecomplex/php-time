@@ -282,18 +282,21 @@ class TimeTest extends TestCase
         $first = (new Time('2019-02-01'))->setToDateStart();
         $last = (new Time('2019-03-01'))->setToDateStart();
 
-        $interval_mutable = $first->diff($last);
-        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($interval_mutable)->log();
-        static::assertSame(0, $interval_mutable->h, '');
-        $interval_mutable->h = 2;
-        static::assertSame(2, $interval_mutable->h, '');
-
-        $interval_constant = $first->diffTime($last);
-        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($interval_constant)->log();
-        static::assertSame(0, $interval_constant->h, '');
-        $this->expectException(\RuntimeException::class);
-        /** @noinspection Annotator */
-        $interval_constant->{'h'} = 2;
+//        // Native \DateInterval's public properties are writable,
+//        // but with no effect.
+//        $interval_mutable = $first->diff($last);
+//        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($interval_mutable)->log();
+//        static::assertSame(0, $interval_mutable->h, '');
+//        $interval_mutable->h = 2;
+//        static::assertSame(2, $interval_mutable->h, '');
+//
+//        // Our interval class properties are read-only.
+//        $interval_constant = $first->diffTime($last);
+//        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($interval_constant)->log();
+//        static::assertSame(0, $interval_constant->h, '');
+//        $this->expectException(\RuntimeException::class);
+//        /** @noinspection Annotator */
+//        $interval_constant->{'h'} = 2;
 
         /**
          * \SimpleComplex\Time\Time::diffTime()
@@ -309,27 +312,33 @@ class TimeTest extends TestCase
         $first = (new Time('2019-02-01'))->setToDateStart();
         $last = (new Time('2019-03-01'))->setToDateStart();
         $diff = $first->diffTime($last);
+        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log();
         static::assertSame(1, $diff->totalMonths);
+
+        // Native diff() gets it wrong here, because non-UTC.
+        date_default_timezone_set(BootstrapTest::TIMEZONE);
+        $first = (new Time('2019-02-01'))->setToDateStart();
+        $last = (new Time('2019-03-01'))->setToDateStart();
+        $diff = $first->toDatetime()->diff($last->toDatetime());
+        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log();
+        static::assertSame(0, $diff->m);
 
         // This would fail if that bug wasn't handled.
         date_default_timezone_set(BootstrapTest::TIMEZONE);
         $first = (new Time('2019-02-01'))->setToDateStart();
         $last = (new Time('2019-03-01'))->setToDateStart();
-        static::assertSame(1, $first->diffTime($last)->totalMonths);
+        $diff = $first->diffTime($last);
+        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log();
+        static::assertSame(1, $diff->totalMonths);
 
         // Reset, for posterity.
         date_default_timezone_set($tz_default);
 
-        // When baseline is non-UTC: use verbatim clone.
+        // Different timezones.
         $first = (new Time('2019-02-01', new \DateTimeZone(BootstrapTest::TIMEZONE)))->setToDateStart();
         $last = (new Time('2019-03-01', new \DateTimeZone('UTC')))->setToDateStart();
-        static::assertSame(1, $first->diffTime($last)->totalMonths);
-
-        // When deviant is non-UTC (and base is UTC), move deviant into UTC.
-        $first = (new Time('2019-02-01', new \DateTimeZone('UTC')))->setToDateStart();
-        $last = (new Time('2019-03-01', new \DateTimeZone(BootstrapTest::TIMEZONE)))->setToDateStart();
-        static::assertSame(0, $first->diffTime($last)->totalMonths);
-
+        //$first = (new Time('2019-02-01', new \DateTimeZone('UTC')))->setToDateStart();
+        //$last = (new Time('2019-03-01', new \DateTimeZone(BootstrapTest::TIMEZONE)))->setToDateStart();
         /**
          * Throws exception because the two dates don't have the same timezone,
          * and falsy arg $allowUnEqualTimezones.
@@ -533,6 +542,15 @@ class TimeTest extends TestCase
                         $sign * 645536279,
                         $sign * ($last->getTimestamp() - $first->getTimestamp()),
                         $sign_alias . ' (' . $zone_alias . ') DateTime::getTimestamp()'
+                    );
+                }
+
+                if ($sign_alias == 'positive' && $zone_alias == 'local') {
+                    \SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log(
+                        'debug',
+                        $first->toISOZonal() . ' >< ' . $last->toISOZonal() . ":\n" . $diff->format(
+                            '%Y years, %m months, %d days - %H hours, %i minutes, %s seconds'
+                        )
                     );
                 }
             }

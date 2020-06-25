@@ -14,7 +14,7 @@ namespace SimpleComplex\Time;
  *
  * Features:
  * - enhanced timezone awareness
- * - diff (diffDate/diffTime, that is) works correctly with non-UTC timezone
+ * - diff - diffTime() - works correctly with non-UTC timezone
  * - safer formatting and modifying
  * - is stringable, to ISO-8601
  * - JSON serializes to string ISO-8601 with timezone marker
@@ -739,7 +739,11 @@ class Time extends \DateTime implements \JsonSerializable
     // Diff.------------------------------------------------
 
     /**
+     * Get difference as a mock DateInterval with signed total properties.
+     *
      * Works correctly with non-UTC timezones.
+     *
+     * Errs if this and arg $dateTime's timezones aren't the same.
      *
      * Always compares using UTC timezone, because native
      * \DateTime+\DateInterval can only handle UTC reliably.
@@ -757,14 +761,14 @@ class Time extends \DateTime implements \JsonSerializable
      *      Supposedly equal to or later than this time,
      *      otherwise totals will be negative.
      *
-     * @return \DateInterval
+     * @return TimeInterval
      *
      * @throws \RuntimeException
-     *      Arg $dateTime's class has no setTimezone() method.
+     *      This and arg $dateTime's timezones aren't the same.
      * @throws \Exception
      *      Propagated; \DateTime constructor.
      */
-    public function diffDate(\DateTimeInterface $dateTime) : \DateInterval
+    public function diffTime(\DateTimeInterface $dateTime) : TimeInterval
     {
         /**
          * Overriding diff() is not possible (or at least risky or ugly),
@@ -774,54 +778,38 @@ class Time extends \DateTime implements \JsonSerializable
          * And PHP internals may well rely on the defects on native diff().
          */
 
-        $tz_utc = null;
-
-        if ($this->timezoneName == 'UTC') {
-            $baseline = $this;
-        } else {
-            $tz_utc = new \DateTimeZone('UTC');
-            $baseline = $this->cloneToMutable()->setTimezone($tz_utc);
-        }
+        /**
+         * The algo here could be moved to TimeInterval's constructor,
+         * but then it would be much more difficult to a Time extension
+         * to override (e.g. construction, cloning).
+         */
 
         $subject_tz_name = $dateTime->getTimezone()->getName();
-        if ($subject_tz_name == 'UTC' || $subject_tz_name == 'Z') {
-            $subject = $dateTime;
-        }
-        elseif (!method_exists($dateTime, 'setTimezone')) {
+        if ($subject_tz_name != $this->timezoneName) {
             throw new \RuntimeException(
-                'Cannot diff non-UTC DateTimeInterface class[' . get_class($dateTime)
-                . '] having no setTimezone method, against this Time instance.'
+                'DateTimes with unequal timezones are not comparable, saw this timezone[' . $this->timezoneName
+                . '] and arg dateTime timezone[' . $subject_tz_name . '].'
             );
         }
-        else {
-            $subject = ($dateTime instanceof Time ? $dateTime->cloneToMutable() : clone $dateTime)
-                ->setTimezone($tz_utc ?? new \DateTimeZone('UTC'));
+
+        if ($this->timezoneName == 'UTC') {
+            return new TimeInterval($this->diff($dateTime));
         }
 
-        return $baseline->diff($subject);
-    }
-
-    /**
-     * Get difference as a wrapped DateInterval with signed total properties,
-     * including total hours, minutes etc.
-     *
-     * Works correctly with non-UTC timezones.
-     * @see Time::diffDate()
-     *
-     * @param \DateTimeInterface $dateTime
-     *      Supposedly equal to or later than this time,
-     *      otherwise totals will be negative.
-     *
-     * @return TimeInterval
-     *
-     * @throws \RuntimeException
-     *      Arg $dateTime's class has no setTimezone() method.
-     * @throws \Exception
-     *      Propagated; \DateTime constructor.
-     */
-    public function diffTime(\DateTimeInterface $dateTime) : TimeInterval
-    {
-        return new TimeInterval($this->diffDate($dateTime));
+        $tz_utc = new \DateTimeZone('UTC');
+        $subject_iso = $dateTime->format('Y-m-d H:i:s.u');
+        return new TimeInterval(
+            // Baseline and subject moved to UTC;
+            // relative years, months, days will be off.
+            ($this->cloneToMutable())->setTimezone($tz_utc)->diff(
+                (new \DateTime($subject_iso, new \DateTimeZone($this->timezoneName)))->setTimezone($tz_utc)
+            ),
+            // Baseline and subject time parts verbatim, but in other (UTC)
+            // timezone; relative hours, minutes, seconds will be off.
+            (new \DateTime($this->format('Y-m-d H:i:s.u'), $tz_utc))->diff(
+                new \DateTime($subject_iso, $tz_utc)
+            )
+        );
     }
 
     /**

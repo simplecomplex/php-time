@@ -10,7 +10,14 @@ declare(strict_types=1);
 namespace SimpleComplex\Time;
 
 /**
- * Wrapped native DateInterval plus signed totalling properties.
+ * Mock \DateInterval plus signed totalling properties.
+ *
+ * Works for non-UTC timezones - when instantiated by diffTime().
+ * Native diff()+DateInterval doesn't get time parts right, when non-UTC
+ * and the datetimes aren't both outside or within summer time.
+ * @see https://bugs.php.net/bug.php?id=52480
+ * @see Time::diffTime()
+ *
  *
  * All properties are read-only.
  * Native \DateInterval's properties are writable, but with no effect:
@@ -18,12 +25,11 @@ namespace SimpleComplex\Time;
  * - setting $days doesn't update $days (and no error)
  * Pretty weird design indeed.
  *
- * @see Time::diffTime()
  *
  * All DateInterval methods inaccessible except for format().
  * @see \DateInterval::format()
  *
- * (inner) \DateInterval properties:
+ * \DateInterval equivalent properties:
  * @property-read int $y  Years.
  * @property-read int $m  Months.
  * @property-read int $d  Days.
@@ -34,13 +40,21 @@ namespace SimpleComplex\Time;
  * @property-read int $invert  Zero if positive; one if negative.
  * @property-read int $days  Use $totalDays instead.
  *
- * Own properties; signed totals (negative if negative diff):
+ * Own properties; all signed:
+ * @property-read int $relativeYears
+ * @property-read int $relativeMonths
+ * @property-read int $relativeDays
+ * @property-read int $relativeHours
+ * @property-read int $relativeMinutes
+ * @property-read int $relativeSeconds
+ * @property-read float $relativeMicroseconds
  * @property-read int $totalYears
  * @property-read int $totalMonths
  * @property-read int $totalDays
  * @property-read int $totalHours
  * @property-read int $totalMinutes
  * @property-read int $totalSeconds
+ * @property-read float $totalMicroseconds
  *
  * @package SimpleComplex\Time
  */
@@ -48,18 +62,19 @@ class TimeInterval
 {
     /**
      * Why not simply extend \DateInterval?
+     * ------------------------------------
      * Because the (total) $days property would become false, since the instance
      * couldn't be created directly via \DateTimeInterface::diff().
-     * And us knowing the appropriate value of $days is no help here, because
+     * Us knowing the appropriate value of $days is no help here, because
      * the days property cannot be overwritten (not truly protected).
      *
      * So it's a choice between two evils:
      * i. A \DateInterval extension who deceptively looks right (instanceof),
      * but somewhat crippled (days:false).
-     * ii. A mock DateInterval which works right,
+     * ii. A mock DateInterval which works fairly right,
      * but may not be accepted (not instanceof).
      *
-     * Not sure if this is the right choice.
+     * Not absolutely sure if this is the right choice.
      */
 
     /**
@@ -85,46 +100,325 @@ class TimeInterval
         'invert' => null,
         'days' => null,
         // Own.
+        'relativeYears' => null,
+        'relativeMonths' => null,
+        'relativeDays' => null,
+        'relativeHours' => null,
+        'relativeMinutes' => null,
+        'relativeSeconds' => null,
+        'relativeMicroseconds' => null,
         'totalYears' => null,
         'totalMonths' => null,
         'totalDays' => null,
         'totalHours' => null,
         'totalMinutes' => null,
         'totalSeconds' => null,
+        'totalMicroseconds' => null,
     ];
 
-    /**
-     * @var \DateInterval
-     */
-    protected $dateInterval;
+
+    // Native properties of verbatim diff() \DateInterval.
 
     /**
+     * Years, unsigned.
+     *
+     * @var int
+     */
+    protected $y;
+
+    /**
+     * Relative months, unsigned.
+     *
+     * @var int
+     */
+    protected $m;
+
+    /**
+     * Relative days, unsigned.
+     *
+     * @var int
+     */
+    protected $d;
+
+
+    // Native properties of truly UTC diff() \DateInterval.
+
+    /**
+     * Relative hours, unsigned.
+     *
+     * @var int
+     */
+    protected $h;
+
+    /**
+     * Relative minutes, unsigned.
+     *
+     * @var int
+     */
+    protected $i;
+
+    /**
+     * Relative seconds, unsigned.
+     *
+     * @var int
+     */
+    protected $s;
+
+    /**
+     * Relative microseconds, unsigned.
+     *
+     * @var float
+     */
+    protected $f;
+
+    /**
+     * 0 for positive difference, 1 for negative.
+     *
+     * @var int
+     */
+    protected $invert;
+
+    /**
+     * Total days, unsigned.
+     *
+     * @var int
+     */
+    protected $days;
+
+
+    // Our properties of verbatim diff() \DateInterval.
+
+    /**
+     * Years, (y) signed.
+     *
+     * @var int
+     */
+    protected $relativeYears;
+
+    /**
+     * Relative months, (m) signed.
+     *
+     * @var int
+     */
+    protected $relativeMonths;
+
+    /**
+     * Relative days, (d) signed.
+     *
+     * @var int
+     */
+    protected $relativeDays;
+
+    /**
+     * Years, (y) signed.
+     *
+     * Same as
+     * @see TimeInterval::$relativeYears
+     *
+     * @var int
+     */
+    protected $totalYears;
+
+    /**
+     * Total months, (y + m) signed.
+     *
+     * @var int
+     */
+    protected $totalMonths;
+
+
+    // Our properties of truly UTC diff() \DateInterval.
+
+    /**
+     * Relative hours, (h) signed.
+     *
+     * @var int
+     */
+    protected $relativeHours;
+
+    /**
+     * Relative minutes, (i) signed.
+     *
+     * @var int
+     */
+    protected $relativeMinutes;
+
+    /**
+     * Relative seconds, (s) signed.
+     *
+     * @var int
+     */
+    protected $relativeSeconds;
+
+    /**
+     * Relative seconds, (f) signed.
+     *
+     * @var float
+     */
+    protected $relativeMicroseconds;
+
+    /**
+     * Total days, (days) signed.
+     *
+     * @var int
+     */
+    protected $totalDays;
+
+    /**
+     * Total hours, (days + h) signed.
+     *
+     * @var int
+     */
+    protected $totalHours;
+
+    /**
+     * Total hours, (days + h + i) signed.
+     *
+     * @var int
+     */
+    protected $totalMinutes;
+
+    /**
+     * Total hours, (days + h + i + s) signed.
+     *
+     * @var int
+     */
+    protected $totalSeconds;
+
+    /**
+     * Total microseconds, (days + h + i + s + f) signed.
+     *
+     * @var float
+     */
+    protected $totalMicroseconds;
+
+    /**
+     * Set on demand.
+     * @see TimeInterval::format()
+     * @var \DateInterval|null
+     */
+    protected $formattableDateInterval;
+
+
+    /**
+     * Comparison using non-UTC timezones does not work natively, at all.
+     *
+     * Years, months and relative days
+     * -------------------------------
+     * Requires datetimes that have verbatim time parts like the originals.
+     * If the original datetimes were non-UTC, they must now have been set
+     * artificially to UTC. But doing so, absolute days and hours, minutes,
+     * seconds will be off.
+     *
+     * Absolute days, and hours, minutes, seconds
+     * ------------------------------------------
+     * Requires datetimes who are - or have been moved to - UTC.
+     * \DateTimeInterface::setTimezone() works for this, it moves the time parts
+     * along with the timezone.
+     * But doing so, makes years, months and relative days off.
+     *
      * @see Time::diffTime()
      *
-     * @param \DateInterval $interval
+     * @param \DateInterval $intervalUTC
+     *      Interval between datetimes originally in, or set to, UTC.
+     * @param \DateInterval|null $intervalVerbatim
+     *      Interval of equivalents, with verbatim time of non-UTC originals.
      *
      * @throws \InvalidArgumentException
-     *      Arg $interval not a \DateInterval constructed via
-     *      \DateTimeInterface::diff().
+     *      Arg $interval or $intervalVerbatim not a \DateInterval constructed
+     *      via \DateTimeInterface::diff().
      */
-    public function __construct(\DateInterval $interval)
+    public function __construct(\DateInterval $intervalUTC, ?\DateInterval $intervalVerbatim = null)
     {
-        if ($interval->days === false) {
+        if ($intervalUTC->days === false) {
             throw new \InvalidArgumentException(
-                'Arg $interval is not a \DateInterval constructed via \DateTimeInterface::diff().'
+                'Arg $intervalUTC is not a \DateInterval constructed via \DateTimeInterface::diff().'
             );
         }
-        $this->dateInterval = $interval;
+        if ($intervalVerbatim && $intervalVerbatim->days === false) {
+            throw new \InvalidArgumentException(
+                'Arg $intervalVerbatim is not a \DateInterval constructed via \DateTimeInterface::diff().'
+            );
+        }
+
+        $sign = $intervalUTC->invert ? -1 : 1;
+
+        /**
+         * Years, months and relative days
+         * -------------------------------
+         * Requires datetimes that have verbatim time parts like the originals.
+         * If the original datetimes were non-UTC, they must now have been set
+         * artificially to UTC. But doing so, total days and hours, minutes,
+         * seconds will be off.
+         */
+        if ($intervalVerbatim) {
+            $this->y = $intervalVerbatim->y;
+            $this->m = $intervalVerbatim->m;
+            $this->d = $intervalVerbatim->d;
+        }
+        else {
+            $this->y = $intervalUTC->y;
+            $this->m = $intervalUTC->m;
+            $this->d = $intervalUTC->d;
+        }
+        $this->totalYears = $this->relativeYears = $sign * $this->y;
+        $this->relativeMonths = $sign * $this->m;
+        $this->relativeDays = $sign * $this->d;
+        $this->totalMonths = ($this->totalYears * 12) + $this->relativeMonths;
+
+        /**
+         * Total days, and hours, minutes, seconds
+         * ------------------------------------------
+         * Requires datetimes who are - or have been moved to - UTC.
+         * \DateTimeInterface::setTimezone() works for this, it moves the time parts
+         * along with the timezone.
+         * But doing so, makes years, months and relative days off.
+         */
+        $this->h = $intervalUTC->h;
+        $this->i = $intervalUTC->i;
+        $this->s = $intervalUTC->s;
+        $this->f = $intervalUTC->f;
+        $this->invert = $intervalUTC->invert;
+        $this->days = $intervalUTC->days;
+
+        $this->relativeHours = $sign * $this->h;
+        $this->relativeMinutes = $sign * $this->i;
+        $this->relativeSeconds = $sign * $this->s;
+        $this->relativeMicroseconds = $sign * $this->f;
+
+        $this->totalDays = $sign * $this->days;
+        $this->totalHours = ($this->totalDays * 24) + ($sign * $this->h);
+        $this->totalMinutes = ($this->totalHours * 60) + ($sign * $this->i);
+        $this->totalSeconds = ($this->totalMinutes * 60) + ($sign * $this->s);
+        $this->totalMicroseconds = ($this->totalSeconds + ($sign * $this->f)) * 1000000;
     }
 
     /**
-     * Returns clone of the inner DateInterval.
+     * Returns clone of inner formattable DateInterval.
+     *
+     * Not constructed via \DateTimeInterface constructor,
+     * thus it's $days property is false.
      *
      * @return \DateInterval
+     *
+     * @throws \Exception
+     *      Propagated; \DateInterval constructor.
      */
     public function getDateInterval() : \DateInterval
     {
-        return clone $this->dateInterval;
+        if (!$this->formattableDateInterval) {
+            // P2Y4DT6H8M
+            $this->formattableDateInterval = new \DateInterval(
+                'P'
+                . $this->y . 'Y'
+                . $this->m . 'M'
+                . $this->d . 'DT'
+                . $this->h . 'H'
+                . $this->i . 'M'
+                . $this->s . 'S'
+            );
+        }
+        return clone $this->formattableDateInterval;
     }
 
     /**
@@ -143,24 +437,20 @@ class TimeInterval
     }
 
     /**
-     * Relays to inner DateInterval's format().
-     *
-     * @see \DateInterval::format()
-     *
      * @param string $format
      *
      * @return string
+     *
+     * @throws \Exception
+     *      Propagated; \DateInterval::format().
      */
     public function format(string $format) : string
     {
-        return $this->dateInterval->format($format);
+        return $this->getDateInterval()->format($format);
     }
 
     /**
      * Get an interval property; read-only.
-     *
-     * Exposes own properties and proxies to inner DateInterval's properties.
-     * @see \DateInterval
      *
      * @param string $key
      *
@@ -175,52 +465,7 @@ class TimeInterval
     public function __get(string $key)
     {
         if (array_key_exists($key, static::EXPLORABLE_VISIBLE)) {
-            $sign = !$this->dateInterval->invert ? 1 : -1;
-            switch ($key) {
-                case 'totalYears':
-                case 'totalMonths':
-                    $years = $sign * $this->dateInterval->y;
-                    if ($key == 'totalYears') {
-                        return $years;
-                    }
-                    return ($years * 12) + ($sign * $this->dateInterval->m);
-                case 'totalDays':
-                case 'totalHours':
-                case 'totalMinutes':
-                case 'totalSeconds':
-                    /**
-                     * DateInterval->days is _total_ days (years + months + days),
-                     * whereas DateInterval->d is _net_ days (years and months excluded).
-                     *
-                     * Thus years and months shan't be added when calculating
-                     * total days, hours, minutes and seconds.
-                     *
-                     * @see \DateInterval::$days
-                     * @see \DateInterval::$d
-                     */
-                    $days = $this->dateInterval->days;
-                    // \DateInterval::days is false unless created
-                    // via \DateTime|\DateTimeImmutable::diff().
-                    if ($days === false) {
-                        throw new \LogicException(
-                            'Internal \DateInterval is not a constructed via \DateTimeInterface::diff().'
-                        );
-                    }
-                    $days *= $sign;
-                    if ($key == 'totalDays') {
-                        return $days;
-                    }
-                    $hours = ($days * 24) + ($sign * $this->dateInterval->h);
-                    if ($key == 'totalHours') {
-                        return $hours;
-                    }
-                    $minutes = ($hours * 60) + ($sign * $this->dateInterval->i);
-                    if ($key == 'totalMinutes') {
-                        return $minutes;
-                    }
-                    return ($minutes * 60) + ($sign * $this->dateInterval->s);
-            }
-            return $this->dateInterval->{$key};
+            return $this->{$key};
         }
         throw new \OutOfBoundsException(get_class($this) . ' has no property[' . $key . '].');
     }
@@ -253,7 +498,7 @@ class TimeInterval
     {
         $a = [];
         foreach (array_keys(static::EXPLORABLE_VISIBLE) as $key) {
-            $a[$key] = $this->__get($key);
+            $a[$key] = $this->{$key};
         }
         return $a;
     }

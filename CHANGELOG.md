@@ -8,7 +8,6 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
 ### Added
 * Forked from simplecomplex/utils (v2.3) time classes.
-* diffDate() works correctly with non-UTC timezones, returns \DateInterval.
 * Properties unixSeconds|unixMilliseconds|unixMicroseconds, which contrary
 to \DateTime.getTimestamp() rounds microseconds; instead of floor'ing.
 
@@ -32,11 +31,9 @@ around the time this library was begun.
 * Changelog in standard keepachangelog format; previous was idiosyncratic.
 
 ### Fixed
-* diffDate() must move non-UTC timezone correctly, not use literal time in other
-(UTC) timezone.
-* diffDate() must NOT use offset as indication of timezone similarity.
-* diffDate() shan't care whether this and subject's timezones are same/similar;
-parameter $allowUnEqualTimezones removed.
+* diffTime() must use two DateIntervals when non-UTC timezone; one for years,
+month, days, and another for total days, and hours, minutes, seconds.
+* diffTime() must NOT use offset as indication of timezone similarity.
 
 
 ## [0.1] - 2018-05-23
