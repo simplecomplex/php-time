@@ -283,11 +283,13 @@ class TimeTest extends TestCase
         $last = (new Time('2019-03-01'))->setToDateStart();
 
         $interval_mutable = $first->diff($last);
+        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($interval_mutable)->log();
         static::assertSame(0, $interval_mutable->h, '');
         $interval_mutable->h = 2;
         static::assertSame(2, $interval_mutable->h, '');
 
         $interval_constant = $first->diffTime($last);
+        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($interval_constant)->log();
         static::assertSame(0, $interval_constant->h, '');
         $this->expectException(\RuntimeException::class);
         /** @noinspection Annotator */

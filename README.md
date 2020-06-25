@@ -21,10 +21,10 @@ Time is forked from simplecomplex/utils' time classes.
 ### Requirements ###
 
 - PHP >=7.2
-- [SimpleComplex Explorable](https://github.com/simplecomplex/php-explorable)
 
 #### Development requirements ####
-- [PHPUnit](https://github.com/sebastianbergmann/phpunit)
+- [PHPUnit](https://github.com/sebastianbergmann/phpunit) ^8
+- [Jasny PHPUnit extension](https://github.com/jasny/phpunit-extension) ^0.2
 
 #### Suggestions ####
 - [SimpleComplex Inspect](https://github.com/simplecomplex/inspect)

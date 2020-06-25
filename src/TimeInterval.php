@@ -9,12 +9,14 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Time;
 
-use SimpleComplex\Explorable\ExplorableInterface;
-use SimpleComplex\Explorable\ExplorableBaseTrait;
-use SimpleComplex\Explorable\ExplorableDumpTrait;
-
 /**
  * Wrapped native DateInterval plus signed totalling properties.
+ *
+ * All properties are read-only.
+ * Native \DateInterval's properties are writable, but with no effect:
+ * - setting $d doesnt't update $days
+ * - setting $days doesn't update $days (and no error)
+ * Pretty weird design indeed.
  *
  * @see Time::diffTime()
  *
@@ -42,7 +44,7 @@ use SimpleComplex\Explorable\ExplorableDumpTrait;
  *
  * @package SimpleComplex\Time
  */
-class TimeInterval implements ExplorableInterface
+class TimeInterval
 {
     /**
      * Why not simply extend \DateInterval?
@@ -60,11 +62,16 @@ class TimeInterval implements ExplorableInterface
      * Not sure if this is the right choice.
      */
 
-    use ExplorableBaseTrait;
-    use ExplorableDumpTrait;
-
     /**
-     * @see \SimpleComplex\Explorable\Explorable::explorablePrepare()
+     * List of properties accessible when getting and var dumping.
+     *
+     * Keys are property names, values may be anything.
+     * Allows a child class to extend parent's list by doing
+     * const EXPLORABLE_VISIBLE = [
+     *   'childvar' => true,
+     * ] + ParentClass::EXPLORABLE_VISIBLE;
+     *
+     * @var mixed[]
      */
     const EXPLORABLE_VISIBLE = [
         // \DateInterval.
@@ -85,11 +92,6 @@ class TimeInterval implements ExplorableInterface
         'totalMinutes' => null,
         'totalSeconds' => null,
     ];
-
-    /**
-     * @see \SimpleComplex\Explorable\Explorable::explorablePrepare()
-     */
-    const EXPLORABLE_HIDDEN = [];
 
     /**
      * @var \DateInterval
@@ -172,11 +174,7 @@ class TimeInterval implements ExplorableInterface
      */
     public function __get(string $key)
     {
-        if (!$this->explorableCursor) {
-            $this->explorablePrepare();
-        }
-
-        if (in_array($key, $this->explorableCursor)) {
+        if (array_key_exists($key, static::EXPLORABLE_VISIBLE)) {
             $sign = !$this->dateInterval->invert ? 1 : -1;
             switch ($key) {
                 case 'totalYears':
@@ -240,14 +238,24 @@ class TimeInterval implements ExplorableInterface
      */
     public function __set(string $key, $value)
     {
-        if (!$this->explorableCursor) {
-            $this->explorablePrepare();
-        }
-
-        if (in_array($key, $this->explorableCursor)) {
+        if (array_key_exists($key, static::EXPLORABLE_VISIBLE)) {
             throw new \RuntimeException(get_class($this) . ' property[' . $key . '] is read-only.');
         }
         throw new \OutOfBoundsException(get_class($this) . ' has no property[' . $key . '].');
+    }
+
+    /**
+     * Make var_dump() make sense.
+     *
+     * @return array
+     */
+    public function __debugInfo() : array
+    {
+        $a = [];
+        foreach (array_keys(static::EXPLORABLE_VISIBLE) as $key) {
+            $a[$key] = $this->__get($key);
+        }
+        return $a;
     }
 
     /**

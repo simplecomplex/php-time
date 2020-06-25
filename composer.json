@@ -13,8 +13,7 @@
     ],
     "require": {
         "php": ">=7.2",
-        "ext-ctype": "*",
-        "simplecomplex/explorable": "^1 || dev-develop"
+        "ext-ctype": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^8",
