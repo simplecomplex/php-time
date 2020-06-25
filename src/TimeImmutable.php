@@ -223,7 +223,9 @@ class TimeImmutable extends Time
             return new static($time->format('Y-m-d H:i:s.u'), $time->getTimezone());
         }
         /**
-         * Let inherited handle \DateTime and not \DateTimeInterface.
+         * Let inherited handle:
+         * - \DateTime
+         * - not \DateTimeInterface; string|int
          * And Time::resolve() uses new static().
          * @see Time::resolve()
          */

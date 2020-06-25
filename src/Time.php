@@ -794,8 +794,8 @@ class Time extends \DateTime implements \JsonSerializable
             );
         }
         else {
-            $subject = $dateTime instanceof Time ? $dateTime->cloneToMutable() : clone $dateTime;
-            $subject->setTimezone($tz_utc ?? $tz_utc = new \DateTimeZone('UTC'));
+            $subject = ($dateTime instanceof Time ? $dateTime->cloneToMutable() : clone $dateTime)
+                ->setTimezone($tz_utc ?? new \DateTimeZone('UTC'));
         }
 
         return $baseline->diff($subject);
