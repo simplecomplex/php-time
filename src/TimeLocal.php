@@ -22,9 +22,9 @@ namespace SimpleComplex\Time;
  * source (like Javascript), which may serialize using UTC as timezone
  * instead of local.
  * And secures that ISO-8601 stringifiers that don't include timezone
- * information - like getDateTimeISO() - behave as (presumably) expected;
+ * information - like $dateTimeISO - behave as (presumably) expected;
  * returning values according to local timezone.
- * @see Time::getDateTimeISO()
+ * @see Time::$dateTimeISO
  * @see Time::getHours()
  * @see Time::timezoneIsLocal()
  *
