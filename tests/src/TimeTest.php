@@ -545,15 +545,22 @@ class TimeTest extends TestCase
                     );
                 }
 
-                if ($sign_alias == 'positive' && $zone_alias == 'local') {
-                    static::assertSame('P20Y5M14DT11H37M59S', $diff->durationISO);
-                    static::assertInstanceOf(\DateInterval::class, $diff->getDateInterval());
-                    \SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log(
-                        'debug',
-                        $first->toISOZonal() . ' >< ' . $last->toISOZonal() . ":\n" . $diff->format(
-                            '%Y years, %m months, %d days - %H hours, %i minutes, %s seconds'
-                        )
-                    );
+                if ($zone_alias == 'local') {
+                    if ($sign_alias == 'positive') {
+                        static::assertSame('P20Y5M14DT11H37M59S', $diff->durationISO);
+//                        \SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log(
+//                            'debug',
+//                            $first->toISOZonal() . ' >< ' . $last->toISOZonal() . ":\n" . $diff->format(
+//                                '%Y years, %m months, %d days - %H hours, %i minutes, %s seconds'
+//                            )
+//                        );
+
+                        //static::assertInstanceOf(\DateInterval::class, $diff->toDateInterval());
+                        \SimpleComplex\Inspect\Inspect::getInstance()->variable($diff->toDateInterval())->log();
+                    }
+                    else {
+                        \SimpleComplex\Inspect\Inspect::getInstance()->variable($diff->toDateInterval())->log();
+                    }
                 }
             }
         }

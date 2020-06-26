@@ -813,6 +813,27 @@ class Time extends \DateTime implements \JsonSerializable
     }
 
     /**
+     * Convenience method returning native \DateInterval.
+     *
+     * The \DateInterval is correct timezone-wise, and has correct
+     * $f and $invert attributes. It's $days is false (no do fixing that).
+     *
+     * @see TimeInterval::toDateInterval()
+     *
+     * @param \DateTimeInterface $dateTime
+     *
+     * @return \DateInterval
+     *
+     * @throws \Exception
+     *      Propagated.
+     */
+    public function diffDate(\DateTimeInterface $dateTime) : \DateInterval
+    {
+        return $this->diffTime($dateTime)->toDateInterval();
+    }
+
+
+    /**
      * @deprecated Use diffTime() instead.
      *
      * @param \DateTimeInterface $dateTime

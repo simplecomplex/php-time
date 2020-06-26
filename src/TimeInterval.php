@@ -76,7 +76,8 @@ class TimeInterval
      * ii. A mock DateInterval which works fairly right,
      * but may not be accepted (not instanceof).
      *
-     * Not absolutely sure if this is the right choice.
+     * This class provides i., and it's toDateInterval method provides ii.
+     * @see TimeInterval::toDateInterval()
      */
 
 
@@ -366,25 +367,43 @@ class TimeInterval
     }
 
     /**
-     * Returns \DateInterval representation.
+     * Returns \DateInterval representation, including correct $f and $invert.
      *
+     * Overriding $days is not possible, because not constructed
+     * via \DateTimeInterface constructor.
+     *
+     * @see Time::diffDate()
      * @see TimeInterval::$durationISO
-     *
-     * Not constructed via \DateTimeInterface constructor,
-     * thus it's $days property is false.
+     * @see TimeInterval::toDateInterval()
      *
      * @return \DateInterval
      *
      * @throws \Exception
      *      Propagated; \DateInterval constructor.
      */
-    public function getDateInterval() : \DateInterval
+    public function toDateInterval() : \DateInterval
     {
-        return new \DateInterval($this->durationISO);
+        /**
+         * Have tried extending \DateInterval,
+         * including tried to shadow its properties.
+         * But $days cannot be overridden.
+         *
+         * \DateInterval's instance vars are somehow not real properties.
+         * They have no defined visibility; shadowing with public or protected
+         * members has no effect (and doesn't produce error).
+         * One can set the value of a property, though (except $days).
+         */
+
+        $o = new \DateInterval($this->durationISO);
+        $o->f = $this->f;
+        $o->invert = $this->invert;
+        // No do; just doesn't work.
+        //$o->days = $this->days;
+        return $o;
     }
 
     /**
-     * @deprecated Use getDateInterval() instead.
+     * @deprecated Use toDateInterval() instead.
      *
      * @return \DateInterval
      *
@@ -396,10 +415,10 @@ class TimeInterval
         // Not @trigger_error() because important.
         trigger_error(
             __CLASS__ . '::' . __METHOD__
-            . ' method is deprecated and will be removed soon, use getDateInterval instead.',
+            . ' method is deprecated and will be removed soon, use toDateInterval instead.',
             E_USER_DEPRECATED
         );
-        return $this->getDateInterval();
+        return $this->toDateInterval();
     }
 
     /**
@@ -412,7 +431,7 @@ class TimeInterval
      */
     public function format(string $format) : string
     {
-        return $this->getDateInterval()->format($format);
+        return $this->toDateInterval()->format($format);
     }
 
     /**
