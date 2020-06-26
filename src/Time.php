@@ -813,6 +813,20 @@ class Time extends \DateTime implements \JsonSerializable
     }
 
     /**
+     * @param \DateTimeInterface $dateTime
+     *
+     * @return \DateInterval
+     *
+     * @throws \Exception
+     *      Propagated.
+     */
+    public function diffDate(\DateTimeInterface $dateTime) : \DateInterval
+    {
+        return $this->diffTime($dateTime)->toDateInterval();
+    }
+
+
+    /**
      * @deprecated Use diffTime() instead.
      *
      * @param \DateTimeInterface $dateTime

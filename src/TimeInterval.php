@@ -378,13 +378,15 @@ class TimeInterval
      * @throws \Exception
      *      Propagated; \DateInterval constructor.
      */
-    public function getDateInterval() : \DateInterval
+    public function toDateInterval() : \DateInterval
     {
-        return new \DateInterval($this->durationISO);
+        //return new \DateInterval($this->durationISO);
+
+        return DateInterval::createFromTimeInterval($this);
     }
 
     /**
-     * @deprecated Use getDateInterval() instead.
+     * @deprecated Use toDateInterval() instead.
      *
      * @return \DateInterval
      *
@@ -396,10 +398,10 @@ class TimeInterval
         // Not @trigger_error() because important.
         trigger_error(
             __CLASS__ . '::' . __METHOD__
-            . ' method is deprecated and will be removed soon, use getDateInterval instead.',
+            . ' method is deprecated and will be removed soon, use toDateInterval instead.',
             E_USER_DEPRECATED
         );
-        return $this->getDateInterval();
+        return $this->toDateInterval();
     }
 
     /**
@@ -412,7 +414,7 @@ class TimeInterval
      */
     public function format(string $format) : string
     {
-        return $this->getDateInterval()->format($format);
+        return $this->toDateInterval()->format($format);
     }
 
     /**
