@@ -546,6 +546,8 @@ class TimeTest extends TestCase
                 }
 
                 if ($sign_alias == 'positive' && $zone_alias == 'local') {
+                    static::assertSame('P20Y5M14DT11H37M59S', $diff->durationISO);
+                    static::assertInstanceOf(\DateInterval::class, $diff->getDateInterval());
                     \SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log(
                         'debug',
                         $first->toISOZonal() . ' >< ' . $last->toISOZonal() . ":\n" . $diff->format(

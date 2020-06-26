@@ -56,6 +56,8 @@ namespace SimpleComplex\Time;
  * @property-read int $totalSeconds
  * @property-read float $totalMicroseconds
  *
+ * @property-read string $durationISO
+ *
  * @package SimpleComplex\Time
  */
 class TimeInterval
@@ -76,45 +78,6 @@ class TimeInterval
      *
      * Not absolutely sure if this is the right choice.
      */
-
-    /**
-     * List of properties accessible when getting and var dumping.
-     *
-     * Keys are property names, values may be anything.
-     * Allows a child class to extend parent's list by doing
-     * const EXPLORABLE_VISIBLE = [
-     *   'childvar' => true,
-     * ] + ParentClass::EXPLORABLE_VISIBLE;
-     *
-     * @var mixed[]
-     */
-    const EXPLORABLE_VISIBLE = [
-        // \DateInterval.
-        'y' => null,
-        'm' => null,
-        'd' => null,
-        'h' => null,
-        'i' => null,
-        's' => null,
-        'f' => null,
-        'invert' => null,
-        'days' => null,
-        // Own.
-        'relativeYears' => null,
-        'relativeMonths' => null,
-        'relativeDays' => null,
-        'relativeHours' => null,
-        'relativeMinutes' => null,
-        'relativeSeconds' => null,
-        'relativeMicroseconds' => null,
-        'totalYears' => null,
-        'totalMonths' => null,
-        'totalDays' => null,
-        'totalHours' => null,
-        'totalMinutes' => null,
-        'totalSeconds' => null,
-        'totalMicroseconds' => null,
-    ];
 
 
     // Native properties of verbatim diff() \DateInterval.
@@ -293,11 +256,13 @@ class TimeInterval
     protected $totalMicroseconds;
 
     /**
-     * Set on demand.
-     * @see TimeInterval::format()
-     * @var \DateInterval|null
+     * ISO 8601 duration.
+     *
+     * @see https://en.wikipedia.org/wiki/ISO_8601#Durations
+     *
+     * @var string
      */
-    protected $formattableDateInterval;
+    protected $durationISO;
 
 
     /**
@@ -391,10 +356,19 @@ class TimeInterval
         $this->totalMinutes = ($this->totalHours * 60) + ($sign * $this->i);
         $this->totalSeconds = ($this->totalMinutes * 60) + ($sign * $this->s);
         $this->totalMicroseconds = ($this->totalSeconds + ($sign * $this->f)) * 1000000;
+
+        // P1Y1M1DT1H1M1S.
+        $this->durationISO = 'P'
+            // $intervalVerbatim.
+            . $this->y . 'Y' . $this->m . 'M' . $this->d . 'DT'
+            // $intervalUTC.
+            . $this->h . 'H' . $this->i . 'M' . $this->s . 'S';
     }
 
     /**
-     * Returns clone of inner formattable DateInterval.
+     * Returns \DateInterval representation.
+     *
+     * @see TimeInterval::$durationISO
      *
      * Not constructed via \DateTimeInterface constructor,
      * thus it's $days property is false.
@@ -406,19 +380,7 @@ class TimeInterval
      */
     public function getDateInterval() : \DateInterval
     {
-        if (!$this->formattableDateInterval) {
-            // P2Y4DT6H8M
-            $this->formattableDateInterval = new \DateInterval(
-                'P'
-                . $this->y . 'Y'
-                . $this->m . 'M'
-                . $this->d . 'DT'
-                . $this->h . 'H'
-                . $this->i . 'M'
-                . $this->s . 'S'
-            );
-        }
-        return clone $this->formattableDateInterval;
+        return new \DateInterval($this->durationISO);
     }
 
     /**
@@ -468,7 +430,7 @@ class TimeInterval
      */
     public function __get(string $key)
     {
-        if (array_key_exists($key, static::EXPLORABLE_VISIBLE)) {
+        if (property_exists($this, $key)) {
             return $this->{$key};
         }
         throw new \OutOfBoundsException(get_class($this) . ' has no property[' . $key . '].');
@@ -487,7 +449,7 @@ class TimeInterval
      */
     public function __set(string $key, $value)
     {
-        if (array_key_exists($key, static::EXPLORABLE_VISIBLE)) {
+        if (property_exists($this, $key)) {
             throw new \RuntimeException(get_class($this) . ' property[' . $key . '] is read-only.');
         }
         throw new \OutOfBoundsException(get_class($this) . ' has no property[' . $key . '].');
@@ -500,11 +462,7 @@ class TimeInterval
      */
     public function __debugInfo() : array
     {
-        $a = [];
-        foreach (array_keys(static::EXPLORABLE_VISIBLE) as $key) {
-            $a[$key] = $this->{$key};
-        }
-        return $a;
+        return get_object_vars($this);
     }
 
     /**
