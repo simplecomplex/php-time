@@ -556,10 +556,10 @@ class TimeTest extends TestCase
 //                        );
 
                         //static::assertInstanceOf(\DateInterval::class, $diff->toDateInterval());
-                        \SimpleComplex\Inspect\Inspect::getInstance()->variable($diff->toDateInterval())->log();
+                        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($diff->toDateInterval())->log();
                     }
                     else {
-                        \SimpleComplex\Inspect\Inspect::getInstance()->variable($diff->toDateInterval())->log();
+                        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($diff->toDateInterval())->log();
                     }
                 }
             }
