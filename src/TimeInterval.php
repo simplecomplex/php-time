@@ -66,7 +66,7 @@ class TimeInterval
      * Because the (total) $days property would become false, since the instance
      * couldn't be created directly via \DateTimeInterface::diff().
      * Us knowing the appropriate value of $days is no help here, because
-     * the days property cannot be overwritten (not truly protected).
+     * the days property cannot be overwritten.
      *
      * So it's a choice between two evils:
      * i. A \DateInterval extension who deceptively looks right (instanceof),
@@ -301,7 +301,7 @@ class TimeInterval
 
 
     /**
-     * Comparison using non-UTC timezones does not work natively, at all.
+     * Needs/uses two native diff()/DateInterval when timezone not UTC.
      *
      * Years, months and relative days
      * -------------------------------
@@ -425,10 +425,14 @@ class TimeInterval
      * @deprecated Use getDateInterval() instead.
      *
      * @return \DateInterval
+     *
+     * @throws \Exception
+     *      Propagated; \DateInterval constructor.
      */
     public function getMutable() : \DateInterval
     {
-        @trigger_error(
+        // Not @trigger_error() because important.
+        trigger_error(
             __CLASS__ . '::' . __METHOD__
             . ' method is deprecated and will be removed soon, use getDateInterval instead.',
             E_USER_DEPRECATED

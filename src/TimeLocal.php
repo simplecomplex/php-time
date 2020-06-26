@@ -10,8 +10,7 @@ declare(strict_types=1);
 namespace SimpleComplex\Time;
 
 /**
- * Time which uses local (default) timezone, or secures that timezone
- * matches local timezone.
+ * Time which forces local (default) timezone.
  *
  * In most cases obsolete, setting timezone to local upon instantiation
  * has the same effect.
