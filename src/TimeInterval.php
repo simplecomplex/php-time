@@ -40,7 +40,7 @@ namespace SimpleComplex\Time;
  * @property-read int $invert  Zero if positive; one if negative.
  * @property-read int $days  Use $totalDays instead.
  *
- * Own properties; all signed:
+ * Signed synonyms of \DateInterval properties y, m, d,h, i, s, f:
  * @property-read int $relativeYears
  * @property-read int $relativeMonths
  * @property-read int $relativeDays
@@ -48,6 +48,8 @@ namespace SimpleComplex\Time;
  * @property-read int $relativeMinutes
  * @property-read int $relativeSeconds
  * @property-read float $relativeMicroseconds
+ *
+ * Signed totals:
  * @property-read int $totalYears
  * @property-read int $totalMonths
  * @property-read int $totalDays
@@ -155,6 +157,8 @@ class TimeInterval
     /**
      * Years, (y) signed.
      *
+     * @see \DateInterval::$y
+     *
      * @var int
      */
     protected $relativeYears;
@@ -162,12 +166,16 @@ class TimeInterval
     /**
      * Relative months, (m) signed.
      *
+     * @see \DateInterval::$m
+     *
      * @var int
      */
     protected $relativeMonths;
 
     /**
      * Relative days, (d) signed.
+     *
+     * @see \DateInterval::$d
      *
      * @var int
      */
@@ -178,6 +186,7 @@ class TimeInterval
      *
      * Same as
      * @see TimeInterval::$relativeYears
+     * @see \DateInterval::$y
      *
      * @var int
      */
@@ -196,12 +205,16 @@ class TimeInterval
     /**
      * Relative hours, (h) signed.
      *
+     * @see \DateInterval::$h
+     *
      * @var int
      */
     protected $relativeHours;
 
     /**
      * Relative minutes, (i) signed.
+     *
+     * @see \DateInterval::$i
      *
      * @var int
      */
@@ -210,6 +223,8 @@ class TimeInterval
     /**
      * Relative seconds, (s) signed.
      *
+     * @see \DateInterval::$s
+     *
      * @var int
      */
     protected $relativeSeconds;
@@ -217,12 +232,16 @@ class TimeInterval
     /**
      * Relative seconds, (f) signed.
      *
+     * @see \DateInterval::$f
+     *
      * @var float
      */
     protected $relativeMicroseconds;
 
     /**
      * Total days, (days) signed.
+     *
+     * @see \DateInterval::$days
      *
      * @var int
      */
@@ -276,7 +295,7 @@ class TimeInterval
      * artificially to UTC. But doing so, absolute days and hours, minutes,
      * seconds will be off.
      *
-     * Absolute days, and hours, minutes, seconds
+     * Total days, and hours, minutes, seconds
      * ------------------------------------------
      * Requires datetimes who are - or have been moved to - UTC.
      * \DateTimeInterface::setTimezone() works for this, it moves the time parts

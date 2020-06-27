@@ -468,7 +468,7 @@ class TimeTest extends TestCase
      *
      * @throws \Throwable
      */
-    public function testTimeIntervalUTCVersusLocal()
+    public function testTimeIntervalUTCVersusLocalMidday()
     {
         $signs = [
             'positive' => 1,
@@ -480,14 +480,14 @@ class TimeTest extends TestCase
             'local' => BootstrapTest::TIMEZONE,
         ];
 
-        foreach ($signs as $sign_alias => $sign) {
-            foreach ($zones as $zone_alias => $zone) {
-                date_default_timezone_set($zone);
+        foreach ($signs as $sign => $sg) {
+            foreach ($zones as $zone => $zn) {
+                date_default_timezone_set($zn);
 
                 $first = new Time('2000-01-01 00:00:00');
                 $last = new Time('2020-06-15 12:37:59.555555');
 
-                if ($sign == 1) {
+                if ($sg == 1) {
                     $diff = $first->diffTime($last);
                 } else {
                     $diff = $last->diffTime($first);
@@ -510,44 +510,123 @@ class TimeTest extends TestCase
                 .  totalMinutes: (integer) -10758997
                 .  totalSeconds: (integer) -645539879
                  */
-                static::assertSame(20, $diff->y, $sign_alias . ' (' . $zone_alias . ') y');
-                static::assertSame(5, $diff->m, $sign_alias . ' (' . $zone_alias . ') m');
-                static::assertSame(14, $diff->d, $sign_alias . ' (' . $zone_alias . ') d');
-                if ($zone_alias == 'UTC') {
-                    static::assertSame(12, $diff->h, $sign_alias . ' (' . $zone_alias . ') h');
-                } else {
-                    static::assertSame(11, $diff->h, $sign_alias . ' (' . $zone_alias . ') h');
-                }
-                static::assertSame(37, $diff->i, $sign_alias . ' (' . $zone_alias . ') i');
-                static::assertSame(59, $diff->s, $sign_alias . ' (' . $zone_alias . ') s');
-                static::assertSame(0.555555, $diff->f, $sign_alias . ' (' . $zone_alias . ') f');
-                static::assertSame(7471, $diff->days, $sign_alias . ' (' . $zone_alias . ') days');
-                static::assertSame($sign * 20, $diff->totalYears, $sign_alias . ' (' . $zone_alias . ') totalYears');
-                static::assertSame($sign * 245, $diff->totalMonths, $sign_alias . ' (' . $zone_alias . ') totalMonths');
-                static::assertSame($sign * 7471, $diff->totalDays, $sign_alias . ' (' . $zone_alias . ') totalDays');
-                if ($zone_alias == 'UTC') {
-                    static::assertSame($sign * 179316, $diff->totalHours, $sign_alias . ' (' . $zone_alias . ') totalHours');
-                    static::assertSame($sign * 10758997, $diff->totalMinutes, $sign_alias . ' (' . $zone_alias . ') totalMinutes');
-                    static::assertSame($sign * 645539879, $diff->totalSeconds, $sign_alias . ' (' . $zone_alias . ') totalSeconds');
-                    static::assertSame(
-                        $sign * 645539879,
-                        $sign * ($last->getTimestamp() - $first->getTimestamp()),
-                        $sign_alias . ' (' . $zone_alias . ') DateTime::getTimestamp()'
-                    );
-                } else {
-                    static::assertSame($sign * 179315, $diff->totalHours, $sign_alias . ' (' . $zone_alias . ') totalHours');
-                    static::assertSame($sign * 10758937, $diff->totalMinutes, $sign_alias . ' (' . $zone_alias . ') totalMinutes');
-                    static::assertSame($sign * 645536279, $diff->totalSeconds, $sign_alias . ' (' . $zone_alias . ') totalSeconds');
-                    static::assertSame(
-                        $sign * 645536279,
-                        $sign * ($last->getTimestamp() - $first->getTimestamp()),
-                        $sign_alias . ' (' . $zone_alias . ') DateTime::getTimestamp()'
-                    );
-                }
+                static::assertSame(20, $diff->y, $sign . ' (' . $zone . ') y');
+                static::assertSame(5, $diff->m, $sign . ' (' . $zone . ') m');
+                static::assertSame(14, $diff->d, $sign . ' (' . $zone . ') d');
+                static::assertSame($zn == 'UTC' ? 12 : 11, $diff->h, $sign . ' (' . $zone . ') h');
+                static::assertSame(37, $diff->i, $sign . ' (' . $zone . ') i');
+                static::assertSame(59, $diff->s, $sign . ' (' . $zone . ') s');
+                static::assertSame(0.555555, $diff->f, $sign . ' (' . $zone . ') f');
+                // Same number of days.
+                static::assertSame(7471, $diff->days, $sign . ' (' . $zone . ') days');
+                static::assertSame($sg * 20, $diff->totalYears, $sign . ' (' . $zone . ') totalYears');
+                static::assertSame($sg * 245, $diff->totalMonths, $sign . ' (' . $zone . ') totalMonths');
+                static::assertSame($sg * 7471, $diff->totalDays, $sign . ' (' . $zone . ') totalDays');
+                static::assertSame($sg * ($zn == 'UTC' ? 179316 : 179315), $diff->totalHours, $sign . ' (' . $zone . ') totalHours');
+                static::assertSame($sg * ($zn == 'UTC' ? 10758997 : 10758937), $diff->totalMinutes, $sign . ' (' . $zone . ') totalMinutes');
+                static::assertSame($sg * ($zn == 'UTC' ? 645539879 : 645536279), $diff->totalSeconds, $sign . ' (' . $zone . ') totalSeconds');
+                static::assertSame(
+                    $sg * ($zn == 'UTC' ? 645539879 : 645536279),
+                    $sg * ($last->getTimestamp() - $first->getTimestamp()),
+                    $sign . ' (' . $zone . ') DateTime::getTimestamp()'
+                );
 
-                if ($zone_alias == 'local') {
-                    if ($sign_alias == 'positive') {
+                if ($zone == 'local') {
+                    if ($sign == 'positive') {
                         static::assertSame('P20Y5M14DT11H37M59S', $diff->durationISO);
+//                        \SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log(
+//                            'debug',
+//                            $first->toISOZonal() . ' >< ' . $last->toISOZonal() . ":\n" . $diff->format(
+//                                '%Y years, %m months, %d days - %H hours, %i minutes, %s seconds'
+//                            )
+//                        );
+
+                        //static::assertInstanceOf(\DateInterval::class, $diff->toDateInterval());
+                        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($diff->toDateInterval())->log();
+                    }
+                    else {
+                        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($diff->toDateInterval())->log();
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Test interval between two literal dates, which is one hour shorter
+     * if in local timezone than if in UTC timezone.
+     *
+     * Reason: the latter date is within +1 hour summer time, and a summer time
+     * offset doesn't make time 'longer'.
+     *
+     * @throws \Throwable
+     */
+    public function testTimeIntervalUTCVersusLocalMidnight()
+    {
+        $signs = [
+            'positive' => 1,
+            'negative' => -1,
+        ];
+
+        $zones = [
+            'UTC' => 'UTC',
+            'local' => BootstrapTest::TIMEZONE,
+        ];
+
+        foreach ($signs as $sign => $sg) {
+            foreach ($zones as $zone => $zn) {
+                date_default_timezone_set($zn);
+
+                $first = new Time('2000-01-01 00:00:00.000000');
+                $last = new Time('2020-06-15 00:00:00.000000');
+
+                if ($sg == 1) {
+                    $diff = $first->diffTime($last);
+                } else {
+                    $diff = $last->diffTime($first);
+                }
+                //\SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log();
+                /*
+                .  y: (integer) 20
+                .  m: (integer) 5
+                .  d: (integer) 14
+                .  h: (integer) 0
+                .  i: (integer) 0
+                .  s: (integer) 0
+                .  f: (float) 0.000000
+                .  invert: (integer) 1
+                .  days: (integer) 7471
+                .  totalYears: (integer) -20
+                .  totalMonths: (integer) -245
+                .  totalDays: (integer) -7471
+                .  totalHours: (integer) -179316
+                .  totalMinutes: (integer) -10758997
+                .  totalSeconds: (integer) -645539879
+                 */
+                static::assertSame(20, $diff->y, $sign . ' (' . $zone . ') y');
+                static::assertSame(5, $diff->m, $sign . ' (' . $zone . ') m');
+                static::assertSame(14, $diff->d, $sign . ' (' . $zone . ') d');
+                static::assertSame($zn == 'UTC' ? 0 : 23, $diff->h, $sign . ' (' . $zone . ') h');
+                static::assertSame(0, $diff->i, $sign . ' (' . $zone . ') i');
+                static::assertSame(0, $diff->s, $sign . ' (' . $zone . ') s');
+                static::assertSame(0.0, $diff->f, $sign . ' (' . $zone . ') f');
+                // Differing number of days.
+                static::assertSame($zn == 'UTC' ? 7471 : 7470, $diff->days, $sign . ' (' . $zone . ') days');
+                static::assertSame($sg * 20, $diff->totalYears, $sign . ' (' . $zone . ') totalYears');
+                static::assertSame($sg * 245, $diff->totalMonths, $sign . ' (' . $zone . ') totalMonths');
+                static::assertSame($sg * ($zn == 'UTC' ? 7471 : 7470), $diff->totalDays, $sign . ' (' . $zone . ') totalDays');
+                static::assertSame($sg * ($zn == 'UTC' ? 179304 : 179303), $diff->totalHours, $sign . ' (' . $zone . ') totalHours');
+                static::assertSame($sg * ($zn == 'UTC' ? 10758240 : 10758180), $diff->totalMinutes, $sign . ' (' . $zone . ') totalMinutes');
+                static::assertSame($sg * ($zn == 'UTC' ? 645494400 : 645490800), $diff->totalSeconds, $sign . ' (' . $zone . ') totalSeconds');
+                static::assertSame(
+                    $sg * ($zn == 'UTC' ? 645494400 : 645490800),
+                    $sg * ($last->getTimestamp() - $first->getTimestamp()),
+                    $sign . ' (' . $zone . ') DateTime::getTimestamp()'
+                );
+
+                if ($zone == 'local') {
+                    if ($sign == 'positive') {
+                        static::assertSame('P20Y5M14DT23H0M0S', $diff->durationISO);
 //                        \SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log(
 //                            'debug',
 //                            $first->toISOZonal() . ' >< ' . $last->toISOZonal() . ":\n" . $diff->format(
