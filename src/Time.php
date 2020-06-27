@@ -31,6 +31,9 @@ namespace SimpleComplex\Time;
  * Magically accessible properties.
  * @see Time::__get()
  *
+ * Timezone name, UTC is always UTC, even if original was Z.
+ * @property-read string $timezoneName
+ *
  * Plain time parts:
  * @property-read int $year
  * @property-read int $month
@@ -1211,6 +1214,8 @@ class Time extends \DateTime implements \JsonSerializable
     public function __get(string $key)
     {
         switch ($key) {
+            case 'timezoneName':
+                return $this->timezoneName;
             case 'unixSeconds':
                 return (int) round(
                     $this->getTimestamp() + ((int) $this->format('u') / 1000000)
