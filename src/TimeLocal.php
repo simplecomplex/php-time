@@ -74,9 +74,46 @@ class TimeLocal extends Time
      */
     public function __construct($time = 'now', /*\DateTimeZone*/ $timezone = null)
     {
+        /**
+         * Parent constructor establishes local timezone,
+         * and the instance's timezone name.
+         * @see Time::__construct()
+         * @see Time::$timezoneLocalName
+         * @see Time::$timezoneName
+         */
         parent::__construct($time, $timezone);
         if (!$this->timezoneIsLocal) {
-            $this->setTimezone(static::$timezoneLocal);
+            parent::setTimezone($timezone);
         }
+    }
+
+    /**
+     * Errs, except if arg timezone is same as current (then ignores, noop).
+     *
+     * @param \DateTimeZone $timezone
+     *
+     * @return $this|\DateTime
+     *
+     * @throws \BadMethodCallException
+     *      On attempt to set timezone.
+     * @throws \RuntimeException
+     *      Frozen.
+     * @throws \Exception
+     *      Propagated; \DateTime::setTimezone().
+     */
+    public function setTimezone(/*\DateTimeZone*/ $timezone) : \DateTime /*self invariant*/
+    {
+        if ($this->frozen) {
+            throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
+        }
+        $tz_name = $timezone->getName();
+        if ($tz_name == $this->timezoneName) {
+            // Ignore attempt to set to local timezone twice.
+            return $this;
+        }
+        throw new \BadMethodCallException(
+            'Updating ' . static::class . ' instance timezone is illegal, this timezoneName[' . $this->timezoneName
+            . '] vs. arg $timezone name[' . $tz_name . '].'
+        );
     }
 }
