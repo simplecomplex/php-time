@@ -392,7 +392,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::setTimezone().
      */
-    public function setTimezone($timezone) : \DateTime /*self invariant*/
+    public function setTimezone(/*\DateTimeZone*/ $timezone) : \DateTime /*self invariant*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
