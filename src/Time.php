@@ -1175,7 +1175,7 @@ class Time extends \DateTime implements \JsonSerializable
         if ($seconds) {
             $modifiers[] = ($seconds > 0 ? '+' : '-') . abs($seconds) . ' ' . (abs($seconds) > 1 ? 'seconds' : 'second');
         }
-        if ($microseconds && (PHP_MAJOR_VERSION != 7 || PHP_MINOR_VERSION)) {
+        if ($microseconds) {
             $modifiers[] = ($microseconds > 0 ? '+' : '-') . abs($microseconds)
                 . ' ' . (abs($microseconds) > 1 ? 'microseconds' : 'microsecond');
         }
