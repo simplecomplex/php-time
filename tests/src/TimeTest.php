@@ -14,6 +14,7 @@ use Jasny\PHPUnit\ExpectWarningTrait;
 
 use SimpleComplex\Time\Time;
 use SimpleComplex\Time\TimeImmutable;
+use SimpleComplex\Time\TimeSpan;
 
 /**
  * @code
@@ -643,5 +644,33 @@ class TimeTest extends TestCase
                 }
             }
         }
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function testTimeSpanOverlap()
+    {
+        $baseline_from = new Time('2019-01-01');
+        $baseline_to = new Time('2019-01-30');
+        $baseline = new TimeSpan($baseline_from, $baseline_to);
+
+        $subject = new TimeSpan(new Time('2019-01-31'), new Time('2019-02-04'));
+        static::assertSame(TimeSpan::OVERLAP_NONE, $baseline->overlap($subject));
+
+        $subject = new TimeSpan(new Time('2019-01-01'), new Time('2019-01-30'));
+        static::assertSame(TimeSpan::OVERLAP_IDENTITY, $baseline->overlap($subject));
+
+        $subject = new TimeSpan(new Time('2018-12-31'), new Time('2019-01-31'));
+        static::assertSame(TimeSpan::OVERLAP_ENCLOSES, $baseline->overlap($subject));
+
+        $subject = new TimeSpan(new Time('2019-01-02'), new Time('2019-01-29'));
+        static::assertSame(TimeSpan::OVERLAP_IS_SUBSET, $baseline->overlap($subject));
+
+        $subject = new TimeSpan(new Time('2018-12-31'), new Time('2019-01-01'));
+        static::assertSame(TimeSpan::OVERLAP_ENDS_WITHIN, $baseline->overlap($subject));
+
+        $subject = new TimeSpan(new Time('2019-01-30'), new Time('2019-01-31'));
+        static::assertSame(TimeSpan::OVERLAP_BEGINS_WITHIN, $baseline->overlap($subject));
     }
 }

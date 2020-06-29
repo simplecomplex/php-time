@@ -10,13 +10,28 @@ declare(strict_types=1);
 namespace SimpleComplex\Time;
 
 /**
+ * Time span, aka period, primarily usable for checking overlap among periods.
  *
- * @todo: The 'period' name is already occupied, by \DatePeriod
+ * Doesn't extend native \DatePeriod since purpose slightly different,
+ * and because incompatible with \DatePeriod constructor (whose second parameter
+ * is \DateInterval).
+ * @see \DatePeriod::__construct()
+ * @see TimeSpan::__construct()
  *
+ * A TimeSpan always includes both ends; no option to exclude the beginning,
+ * like \DatePeriod::EXCLUDE_START_DATE.
+ *
+ * Is in effect frozen/immutable, because saves or refers the datetimes
+ * internally as TimeImmutables.
+ * @see TimeImmutable
+ * @see TimeSpan::$from
+ * @see TimeSpan::$to
  *
  * @property-read string $timezoneName
- * @property-read TimeImmutable $fromTime
- * @property-read TimeImmutable $toTime
+ * @property-read TimeImmutable $from
+ * @property-read TimeImmutable $to
+ * @property-read float $fromUnixMicroseconds
+ * @property-read float $toUnixMicroseconds
  *
  * @package SimpleComplex\Time
  */
@@ -28,9 +43,9 @@ class TimeSpan
     protected $timezoneName;
 
     /**
-     * @var Time
+     * @var TimeImmutable
      */
-    protected $fromTime;
+    protected $from;
 
     /**
      * @var float
@@ -39,9 +54,9 @@ class TimeSpan
 
     /**
      *
-     * @var Time
+     * @var TimeImmutable
      */
-    protected $toTime;
+    protected $to;
 
     /**
      * @var float
@@ -49,88 +64,75 @@ class TimeSpan
     protected $toUnixMicroseconds;
 
     /**
-     * Difference is allowed to be zero, but not negative.
+     * Difference between $from and $to is allowed to be zero, but not negative.
      *
-     * Saves references to arg $fromDate, $toDate if they are Time instances;
-     * otherwise saves equivalent Time|TimeImmutable objects.
-     * @see TimeSpan::$fromTime
-     * @see TimeSpan::$toTime
+     * The two datetimes must be in same timezone.
      *
-     * @param \DateTimeInterface $fromDate
-     * @param \DateTimeInterface $toDate
-     *      Must be equal to or later than arg $fromDate.
-     *      Timezone must be equal to $fromDate's.
+     * @param \DateTimeInterface $from
+     * @param \DateTimeInterface $to
+     *      Must be equal to or later than arg $from.
+     *      Timezone must be equal to $from's.
      *
+     * @throws \InvalidArgumentException
+     *      Args $from and $to are in differing timezones.
+     *      Arg $from later than arg $to.
      * @throws \Exception
      *      Propagated.
      */
-    public function __construct(\DateTimeInterface $fromDate, \DateTimeInterface $toDate)
+    public function __construct(\DateTimeInterface $from, \DateTimeInterface $to)
     {
-        // @todo: there's no reason to convert to Time.
+        $this->from = $from instanceof TimeImmutable ? $from : TimeImmutable::createFromDateTime($from);
+        $this->timezoneName = $this->from->timezoneName;
+        $this->to = $to instanceof TimeImmutable ? $to : TimeImmutable::createFromDateTime($to);
 
-
-        if ($fromDate instanceof Time) {
-            $this->fromTime = $fromDate;
-        }
-        elseif ($fromDate instanceof \DateTimeImmutable) {
-            $this->fromTime = TimeImmutable::createFromImmutable($fromDate);
-        }
-        else {
-            $this->fromTime = TimeImmutable::createFromDateTime($fromDate);
-        }
-        $this->timezoneName = $this->fromTime->timezoneName;
-
-        if ($toDate instanceof Time) {
-            $this->toTime = $toDate;
-        }
-        elseif ($toDate instanceof \DateTimeImmutable) {
-            $this->toTime = TimeImmutable::createFromImmutable($toDate);
-        }
-        else {
-            $this->toTime = Time::createFromDateTime($toDate);
-        }
-
-        $to_tz = $this->toTime->timezoneName;
-        if ($to_tz != $this->timezoneName) {
+        if ($this->to->timezoneName != $this->timezoneName) {
             throw new \InvalidArgumentException(
-                'Arg $toDate timezone[' . $to_tz
-                . '] differs from arg $fromDate timezone[' . $this->timezoneName . '].'
+                'Arg $to timezone[' . $this->to->timezoneName
+                . '] differs from arg $from timezone[' . $this->timezoneName . '].'
             );
         }
 
-        $this->fromUnixMicroseconds = $this->fromTime->unixMicroseconds;
-        $this->toUnixMicroseconds = $this->fromTime->unixMicroseconds;
+        // There's a cost to producing unixMicroseconds,
+        // thus saved once and for all.
+        $this->fromUnixMicroseconds = $this->from->unixMicroseconds;
+        $this->toUnixMicroseconds = $this->to->unixMicroseconds;
 
         // Allowed to be same, because may represent a period of a single date
         // despite same time of day.
         if ($this->fromUnixMicroseconds > $this->toUnixMicroseconds) {
             throw new \InvalidArgumentException(
-                'Arg $fromDate[' . $this->fromTime . '] cannot be later than arg $toDate[' . $this->toTime . '].'
+                'Arg $from[' . $this->from . '] cannot be later than arg $to[' . $this->to . '].'
             );
         }
     }
 
     /**
+     * Difference between this from and this to.
+     *
      * @return TimeInterval
      *
      * @throws \Exception
      *      Propagated.
      */
-    public function interval() : TimeInterval
+    public function timeInterval() : TimeInterval
     {
-        return $this->fromTime->diffTime($this->toTime);
+        return $this->from->diffTime($this->to);
     }
 
     /**
-     * Measures diff between this toTime and that fromTime.
+     * Difference between this to and arg $timeSpan from,
+     * or this from and arg $timeSpan to (negative).
      *
      * @param TimeSpan $timeSpan
-     * @return TimeInterval
+     * @return TimeInterval|int
+     *      Int: Arg $timeSpan overlaps this.
      *
+     * @throws \InvalidArgumentException
+     *      Arg $timeSpan is in other timezone than this.
      * @throws \Exception
      *      Propagated.
      */
-    public function diffTimeSpan(TimeSpan $timeSpan) : TimeInterval
+    public function diffTimeSpan(TimeSpan $timeSpan)
     {
         if ($timeSpan->timezoneName != $this->timezoneName) {
             throw new \InvalidArgumentException(
@@ -138,7 +140,17 @@ class TimeSpan
                 . '] differs from this timezone[' . $this->timezoneName . '].'
             );
         }
-        return $this->toTime->diffTime($timeSpan->fromTime);
+
+        $overlap = $this->overlap($timeSpan);
+        if ($overlap != static::OVERLAP_NONE) {
+            return $overlap;
+        }
+
+        if ($timeSpan->fromUnixMicroseconds > $this->toUnixMicroseconds) {
+            return $this->to->diffTime($timeSpan->from);
+        }
+        // Negative.
+        return $this->from->diffTime($timeSpan->to);
     }
 
     /**
@@ -171,10 +183,10 @@ class TimeSpan
      */
     public const OVERLAP_BEGINS_WITHIN = 5;
 
-
     /**
-     * Check whether another TimeSpan overlaps this.
+     * Checks whether another TimeSpan overlaps this.
      *
+     * Explains overlap, returning one of these (int) class constants:
      * @see TimeSpan::OVERLAP_NONE
      * @see TimeSpan::OVERLAP_IDENTITY
      * @see TimeSpan::OVERLAP_ENCLOSES
@@ -188,38 +200,41 @@ class TimeSpan
      *
      * @throws \LogicException
      *      Algo error in this method; failure to explain overlap.
+     * @throws \Exception
+     *      Propagated.
      */
     public function overlap(TimeSpan $timeSpan)
     {
-        $subject_from = $timeSpan->fromTime->unixMicroseconds;
-        $subject_to = $timeSpan->toTime->unixMicroseconds;
+        $baseline_from = $this->fromUnixMicroseconds;
+        $baseline_to = $this->toUnixMicroseconds;
+        $subject_from = $timeSpan->fromUnixMicroseconds;
+        $subject_to = $timeSpan->toUnixMicroseconds;
 
-        if ($subject_to >= $this->fromUnixMicroseconds && $subject_from <= $this->toUnixMicroseconds) {
+        if ($subject_to >= $baseline_from && $subject_from <= $baseline_to) {
             // Identity.
-            if ($subject_from == $this->fromUnixMicroseconds && $subject_to == $this->toUnixMicroseconds) {
+            if ($subject_from == $baseline_from && $subject_to == $baseline_to) {
                 return static::OVERLAP_IDENTITY;
             }
             // Encloses this.
-            elseif ($subject_from <= $this->fromUnixMicroseconds && $subject_to >= $this->toUnixMicroseconds) {
+            elseif ($subject_from <= $baseline_from && $subject_to >= $baseline_to) {
                 return static::OVERLAP_ENCLOSES;
             }
             // Subset of this.
-            elseif ($subject_from >= $this->fromUnixMicroseconds && $subject_to <= $this->toUnixMicroseconds) {
+            elseif ($subject_from >= $baseline_from && $subject_to <= $baseline_to) {
                 return static::OVERLAP_IS_SUBSET;
             }
             // Ends within this.
-            elseif ($subject_to < $this->toUnixMicroseconds) {
+            elseif ($subject_to < $baseline_to) {
                 return static::OVERLAP_ENDS_WITHIN;
             }
             // Begins within this.
-            elseif ($subject_from > $this->fromUnixMicroseconds) {
+            elseif ($subject_from > $baseline_from) {
                 return static::OVERLAP_BEGINS_WITHIN;
             }
             else {
                 throw new \LogicException(
                     __CLASS__ . '::' . __METHOD__ . '() fails to explain how '
-                    . $timeSpan->fromTime . ' - ' . $timeSpan->toTime
-                    . ' overlaps ' . $this->fromTime . ' - ' . $this->toTime . '.'
+                    . $timeSpan->from . ' - ' . $timeSpan->to . ' overlaps ' . $this->from . ' - ' . $this->to . '.'
                 );
             }
         }
@@ -239,8 +254,10 @@ class TimeSpan
     {
         switch ($key) {
             case 'timezoneName':
-            case 'fromTime':
-            case 'toTime':
+            case 'from':
+            case 'to':
+            case 'fromUnixMicroseconds':
+            case 'toUnixMicroseconds':
                 return $this->{$key};
         }
         throw new \OutOfBoundsException(get_class($this) . ' instance exposes no property[' . $key . '].');
