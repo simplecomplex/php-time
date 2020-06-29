@@ -101,6 +101,9 @@ class Time extends \DateTime implements \JsonSerializable
      * @see Time::toISOZonal()
      * @see Time::toISOUTC()
      *
+     * Overridable ad-hoc across all new instances.
+     * @see Time::setSubSecondPrecision()
+     *
      * @var string
      *      Supported values: none|milli|micro.
      */
@@ -109,10 +112,27 @@ class Time extends \DateTime implements \JsonSerializable
     /**
      * Subsecond precision of JSON serialization format.
      *
+     * Overridable ad-hoc across all new instances.
+     * @see Time::setSubSecondPrecision()
+     *
      * @var string
      *      Supported values: none|milli|micro.
      */
     public const JSON_SUBSECOND_PRECISION = 'milli';
+
+    /**
+     * @see Time::setSubSecondPrecision()
+     *
+     * @var string|null
+     */
+    protected static $isoSubSecondPrecision;
+
+    /**
+     * @see Time::setSubSecondPrecision()
+     *
+     * @var string|null
+     */
+    protected static $jsonSubSecondPrecision;
 
     /**
      * Local (default) timezone object.
@@ -522,6 +542,48 @@ class Time extends \DateTime implements \JsonSerializable
             return false;
         }
         return true;
+    }
+
+    /**
+     * Override ad-hoc for all new instances.
+     *
+     * @see Time::ISO_SUBSECOND_PRECISION
+     * @see Time::JSON_SUBSECOND_PRECISION
+     *
+     * @param string|null $iso
+     * @param string|null $json
+     *
+     * @throws \InvalidArgumentException
+     *      One the args is not null or (string) none|milli|micro.
+     */
+    public static function setSubSecondPrecision(?string $iso = null, ?string $json = null)
+    {
+        if ($iso) {
+            switch ($iso) {
+                case 'none':
+                case 'milli':
+                case 'micro':
+                    static::$isoSubSecondPrecision = $iso;
+                    break;
+                default:
+                    throw new \InvalidArgumentException(
+                        'Arg $iso is not null or (string) none|milli|micro, saw ' . $iso . '.'
+                    );
+            }
+        }
+        if ($json) {
+            switch ($json) {
+                case 'none':
+                case 'milli':
+                case 'micro':
+                    static::$jsonSubSecondPrecision = $json;
+                    break;
+                default:
+                    throw new \InvalidArgumentException(
+                        'Arg $json is not null or (string) none|milli|micro, saw ' . $iso . '.'
+                    );
+            }
+        }
     }
 
     /**
@@ -1370,11 +1432,12 @@ class Time extends \DateTime implements \JsonSerializable
      * YYYY-MM-DDTHH:ii:ss.mmmmmm+HH:II
      *
      * @see Time::ISO_SUBSECOND_PRECISION
+     * @see Time::$isoSubSecondPrecision
      * @see Time::__toString().
      *
      * @param string|null $subSecondPrecision
      *      Values: none|milli|micro.
-     *      Default: static::ISO_SUBSECOND_PRECISION.
+     *      Default: Time::$isoSubSecondPrecision or Time::ISO_SUBSECOND_PRECISION.
      *
      * @return string
      *
@@ -1383,7 +1446,7 @@ class Time extends \DateTime implements \JsonSerializable
      */
     public function toISOZonal(?string $subSecondPrecision = null) : string
     {
-        $precision = $subSecondPrecision ?? static::ISO_SUBSECOND_PRECISION;
+        $precision = $subSecondPrecision ?? static::$isoSubSecondPrecision ?? static::ISO_SUBSECOND_PRECISION;
 
         $str = $this->format('c');
         switch ($precision) {
@@ -1420,10 +1483,11 @@ class Time extends \DateTime implements \JsonSerializable
      * Like Javascript Date.toISOString(); when milliseconds precision.
      *
      * @see Time::ISO_SUBSECOND_PRECISION
+     * @see Time::$isoSubSecondPrecision
      *
      * @param string|null $subSecondPrecision
      *      Values: none|milli|micro.
-     *      Default: static::ISO_SUBSECOND_PRECISION.
+     *      Default: Time::$isoSubSecondPrecision or Time::ISO_SUBSECOND_PRECISION.
      *
      * @return string
      *
@@ -1434,7 +1498,7 @@ class Time extends \DateTime implements \JsonSerializable
      */
     public function toISOUTC(?string $subSecondPrecision = null) : string
     {
-        $precision = $subSecondPrecision ?? static::ISO_SUBSECOND_PRECISION;
+        $precision = $subSecondPrecision ?? static::$isoSubSecondPrecision ?? static::ISO_SUBSECOND_PRECISION;
 
         switch ($precision) {
             case 'micro':
@@ -1485,6 +1549,7 @@ class Time extends \DateTime implements \JsonSerializable
      * but a nuisance when communicating with anything else.
      *
      * @see Time::JSON_SUBSECOND_PRECISION
+     * @see Time::$jsonSubSecondPrecision
      * @see Time::toISOZonal()
      * @see \JsonSerializable
      *
@@ -1492,7 +1557,7 @@ class Time extends \DateTime implements \JsonSerializable
      */
     public function jsonSerialize()
     {
-        return $this->toISOZonal(static::JSON_SUBSECOND_PRECISION);
+        return $this->toISOZonal(static::$jsonSubSecondPrecision ?? static::JSON_SUBSECOND_PRECISION);
     }
 
     /**

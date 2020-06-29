@@ -10,6 +10,10 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 * Forked from simplecomplex/utils (v2.3) time classes.
 * Properties unixSeconds|unixMilliseconds|unixMicroseconds, which contrary
 to \DateTime.getTimestamp() rounds microseconds; instead of floor'ing.
+* Time::setSubSecondPrecision() to set ISO/JSON precision ad-hoc across all new
+  instances.
+* TimeImmutable
+* TimeSpan.
 
 ### Changed
 * Requires PHP >=7.2; not 7.0.
@@ -27,7 +31,8 @@ like ->month (->getMonth()) and ->dateISO (->getDateISO).
 and jsonSerialize() default to subseconds precision milli (was none).  
 Native DateTime's microseconds support was incomplete until PHP 7.1;
 around the time this library was begun.
-* Time::setJsonSerializePrecision() removed; no deprecation parachute, was daft.
+* Time::setJsonSerializePrecision() removed; no deprecation parachute, was daft
+  to set it on instance instead of class.
 * Changelog in standard keepachangelog format; previous was idiosyncratic.
 
 ### Fixed
