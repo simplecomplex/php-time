@@ -262,14 +262,23 @@ class TimeImmutable extends Time
     }
 
     /**
-     * Freezing has no effect.
+     * Does nothing, TimeImmutable is not Freezable,
+     * despite child class of Time.
+     *
+     * Freezing would have no effect.
      * Instance self is never mutated, uses intermediate Time instances
      * for mutations.
      *
-     * @see Time::freeze()
+     * @return $this|TimeImmutable
+     */
+    public function freeze() /*: object*/
+    {
+        return $this;
+    }
+
+    /**
      * @see Time::frozen()
      */
-
 
     // Timezone.--------------------------------------------
 
