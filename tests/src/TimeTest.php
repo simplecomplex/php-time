@@ -415,7 +415,7 @@ class TimeTest extends TestCase
         static::assertSame(1577880000, $ceil->getTimestamp(), 'ceilable truncated');
 
         static::assertSame(1577880000, $floor->unixSeconds, 'floorable floored');
-        static::assertSame(1577880001, $ceil->unixSeconds, 'ceilable ceiled');
+        static::assertSame(1577880000, $ceil->unixSeconds, 'ceilable ceiled');
 
 
         // Milli/microseconds methods aren't exact, because floats.

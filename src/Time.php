@@ -45,8 +45,6 @@ namespace SimpleComplex\Time;
  * @property-read int $microseconds
  *
  * Unix Epoch:
- * Native getTimestamp() disregards microseconds; in effect floors them.
- * This property rounds microseconds.
  * @property-read int $unixSeconds
  * Floats to avoid hitting precision limit.
  * @property-read float $unixMilliseconds
@@ -1279,13 +1277,13 @@ class Time extends \DateTime implements \JsonSerializable
             case 'timezoneName':
                 return $this->timezoneName;
             case 'unixSeconds':
-                return (int) round(
-                    $this->getTimestamp() + ((int) $this->format('u') / 1000000)
-                );
+                // floor'ed/truncated microseconds.
+                return $this->getTimestamp();
             case 'unixMilliseconds':
                 // Uses the 'u' format instead of 'v' for consistency with
                 // toUnixMicroseconds().
-                return (float) ($this->getTimestamp() * 1000) + round($this->format('u') / 1000, 3);
+                // floor'ed/truncated microseconds.
+                return (float) ($this->getTimestamp() * 1000) + (float) substr($this->format('u'), 0, 3);
             case 'unixMicroseconds':
                 return (float) ($this->getTimestamp() * 1000000) + (float) $this->format('u');
         }
