@@ -23,8 +23,8 @@ namespace SimpleComplex\Time;
  * And secures that ISO-8601 stringifiers that don't include timezone
  * information - like $dateTimeISO - behave as (presumably) expected;
  * returning values according to local timezone.
- * @see Time::$dateTimeISO
- * @see Time::getHours()
+ * @see Time::$ISODateTime
+ * @see Time::$hour
  * @see Time::timezoneIsLocal()
  *
  * @see \SimpleComplex\Time\Time
@@ -39,24 +39,21 @@ namespace SimpleComplex\Time;
  * @property-read int $year
  * @property-read int $month
  * @property-read int $date
- * @property-read int $hours
- * @property-read int $minutes
- * @property-read int $seconds
- * @property-read int $milliseconds
- * @property-read int $microseconds
+ * @property-read int $hour
+ * @property-read int $minute
+ * @property-read int $second
+ * @property-read int $milli
+ * @property-read int $micro
  *
  * Unix Epoch:
- * Native getTimestamp() disregards microseconds; in effect floors them.
- * This property rounds microseconds.
- * @property-read int $unixSeconds
- * Floats to avoid hitting precision limit.
- * @property-read float $unixMilliseconds
- * @property-read float $unixMicroseconds
+ * @property-read int $epochSecond
+ * @property-read int $epochMilli
+ * @property-read int $epochMicro
  *
  * No-zone ISO 8601 timestamps:
- * @property-read string $dateISO  YYYY-MM-DD
- * @property-read string $timeISO  HH:ii:ss
- * @property-read string $dateTimeISO  YYYY-MM-DD HH:ii:ss
+ * @property-read string $ISODate  YYYY-MM-DD
+ * @property-read string $ISOTime  HH:ii:ss
+ * @property-read string $ISODateTime  YYYY-MM-DD HH:ii:ss
  *
  * @package SimpleComplex\Time
  */

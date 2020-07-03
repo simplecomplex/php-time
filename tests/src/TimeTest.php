@@ -63,6 +63,7 @@ class TimeTest extends TestCase
 
         //error_reporting(E_ALL | E_DEPRECATED | E_USER_DEPRECATED);
 
+        /** @var Time[] $times */
         $times = [
             'Time' => new Time('2020-06-15 12:37:59.555555'),
             'TimeImmutable' => new TimeImmutable('2020-06-15 12:37:59.555555'),
@@ -73,11 +74,11 @@ class TimeTest extends TestCase
             static::assertSame(2020, $time->year, '(' . $class . ')->year value');
             static::assertSame(6, $time->month, '(' . $class . ')->month value');
             static::assertSame(15, $time->date, '(' . $class . ')->date value');
-            static::assertSame(12, $time->hours, '(' . $class . ')->hours value');
-            static::assertSame(37, $time->minutes, '(' . $class . ')->minutes value');
-            static::assertSame(59, $time->seconds, '(' . $class . ')->seconds value');
-            static::assertSame(555, $time->milliseconds, '(' . $class . ')->milliseconds value');
-            static::assertSame(555555, $time->microseconds, '(' . $class . ')->microseconds value');
+            static::assertSame(12, $time->hour, '(' . $class . ')->hour value');
+            static::assertSame(37, $time->minute, '(' . $class . ')->minute value');
+            static::assertSame(59, $time->second, '(' . $class . ')->second value');
+            static::assertSame(555, $time->milli, '(' . $class . ')->milli value');
+            static::assertSame(555555, $time->micro, '(' . $class . ')->micro value');
             // Deprecated getYear() etc.
             $this->expectDeprecation();
             static::assertIsInt($time->{'getYear'}(), '(' . $class . ')->year integer');
@@ -88,15 +89,15 @@ class TimeTest extends TestCase
             $this->expectDeprecation();
             static::assertSame(15, $time->{'getDate'}(), '(' . $class . ')->date value');
             $this->expectDeprecation();
-            static::assertSame(12, $time->{'getHours'}(), '(' . $class . ')->hours value');
+            static::assertSame(12, $time->{'getHours'}(), '(' . $class . ')->hour value');
             $this->expectDeprecation();
-            static::assertSame(37, $time->{'getMinutes'}(), '(' . $class . ')->minutes value');
+            static::assertSame(37, $time->{'getMinutes'}(), '(' . $class . ')->minute value');
             $this->expectDeprecation();
-            static::assertSame(59, $time->{'getSeconds'}(), '(' . $class . ')->seconds value');
+            static::assertSame(59, $time->{'getSeconds'}(), '(' . $class . ')->second value');
             $this->expectDeprecation();
-            static::assertSame(555, $time->{'getMilliseconds'}(), '(' . $class . ')->milliseconds value');
+            static::assertSame(555, $time->{'getMilliseconds'}(), '(' . $class . ')->milli value');
             $this->expectDeprecation();
-            static::assertSame(555555, $time->{'getMicroseconds'}(), '(' . $class . ')->microseconds value');
+            static::assertSame(555555, $time->{'getMicroseconds'}(), '(' . $class . ')->micro value');
         }
     }
 
@@ -108,12 +109,12 @@ class TimeTest extends TestCase
         $time = new Time('2018-01-01');
 
         $years = $months = $days = 1;
-        static::assertSame('2018-01-01', (clone $time)->modifyDate(0, 0)->dateISO);
-        static::assertSame('2019-02-02', (clone $time)->modifyDate($years, $months, $days)->dateISO);
+        static::assertSame('2018-01-01', (clone $time)->modifyDate(0, 0)->ISODate);
+        static::assertSame('2019-02-02', (clone $time)->modifyDate($years, $months, $days)->ISODate);
         // 2017-01-01
         // 2016-12-01
         // 2016-11-30
-        static::assertSame('2016-11-30', (clone $time)->modifyDate(-$years, -$months, -$days)->dateISO);
+        static::assertSame('2016-11-30', (clone $time)->modifyDate(-$years, -$months, -$days)->ISODate);
 
         // Modifying month only.------------------------------------------------
         $log = [];
@@ -124,7 +125,7 @@ class TimeTest extends TestCase
         $time = (new Time())->setDate($year, $month, $day);
         $limit = 25;
         $log[] = '';
-        $log[] = '     ' . $time->dateISO;
+        $log[] = '     ' . $time->ISODate;
         for ($months = 1; $months <= $limit; ++$months) {
             $yr = $year;
             $mnth = $month;
@@ -143,7 +144,7 @@ class TimeTest extends TestCase
                 ($yr)
                 . '-' . str_pad('' . $mnth, 2, '0', STR_PAD_LEFT)
                 . '-' . str_pad('' . ($day), 2, '0', STR_PAD_LEFT),
-                $result = (clone $time)->modifyDate(0, $months)->dateISO
+                $result = (clone $time)->modifyDate(0, $months)->ISODate
             );
             $log[] = str_pad('' . $months, 3, ' ', STR_PAD_LEFT) . ': ' . $result;
         }
@@ -154,7 +155,7 @@ class TimeTest extends TestCase
         $time = (new Time())->setDate($year, $month, $day);
         $limit = -25;
         $log[] = '';
-        $log[] = '     ' . $time->dateISO;
+        $log[] = '     ' . $time->ISODate;
         for ($months = -1; $months >= $limit; --$months) {
             $yr = $year;
             $mnth = $month;
@@ -173,7 +174,7 @@ class TimeTest extends TestCase
                 ($yr)
                 . '-' . str_pad('' . $mnth, 2, '0', STR_PAD_LEFT)
                 . '-' . str_pad('' . ($day), 2, '0', STR_PAD_LEFT),
-                $result = (clone $time)->modifyDate(0, $months)->dateISO
+                $result = (clone $time)->modifyDate(0, $months)->ISODate
             );
             $log[] = str_pad('' . $months, 3, ' ', STR_PAD_LEFT) . ': ' . $result;
         }
@@ -184,7 +185,7 @@ class TimeTest extends TestCase
         $time = (new Time())->setDate($year, $month, $day);
         $limit = 25;
         $log[] = '';
-        $log[] = '     ' . $time->dateISO;
+        $log[] = '     ' . $time->ISODate;
         for ($months = 1; $months <= $limit; ++$months) {
             $yr = $year;
             $mnth = $month;
@@ -203,7 +204,7 @@ class TimeTest extends TestCase
                 ($yr)
                 . '-' . str_pad('' . $mnth, 2, '0', STR_PAD_LEFT)
                 . '-' . str_pad('' . ($day), 2, '0', STR_PAD_LEFT),
-                $result = (clone $time)->modifyDate(0, $months)->dateISO
+                $result = (clone $time)->modifyDate(0, $months)->ISODate
             );
             $log[] = str_pad('' . $months, 3, ' ', STR_PAD_LEFT) . ': ' . $result;
         }
@@ -214,7 +215,7 @@ class TimeTest extends TestCase
         $time = (new Time())->setDate($year, $month, $day);
         $limit = -25;
         $log[] = '';
-        $log[] = '     ' . $time->dateISO;
+        $log[] = '     ' . $time->ISODate;
         for ($months = -1; $months >= $limit; --$months) {
             $yr = $year;
             $mnth = $month;
@@ -233,7 +234,7 @@ class TimeTest extends TestCase
                 ($yr)
                 . '-' . str_pad('' . $mnth, 2, '0', STR_PAD_LEFT)
                 . '-' . str_pad('' . ($day), 2, '0', STR_PAD_LEFT),
-                $result = (clone $time)->modifyDate(0, $months)->dateISO
+                $result = (clone $time)->modifyDate(0, $months)->ISODate
             );
             $log[] = str_pad('' . $months, 3, ' ', STR_PAD_LEFT) . ': ' . $result;
         }
@@ -243,23 +244,23 @@ class TimeTest extends TestCase
 
         // Days only.
         $time = new Time('2018-01-01');
-        static::assertSame('2018-01-02', (clone $time)->modifyDate(0, 0, 1)->dateISO);
+        static::assertSame('2018-01-02', (clone $time)->modifyDate(0, 0, 1)->ISODate);
 
         // Last day of February.
         $time = new Time('2018-01-31');
-        static::assertSame('2018-02-28', (clone $time)->modifyDate(0, 1)->dateISO);
+        static::assertSame('2018-02-28', (clone $time)->modifyDate(0, 1)->ISODate);
         // Leap year last day of February.
-        static::assertSame('2020-02-29', (clone $time)->modifyDate(2, 1)->dateISO);
+        static::assertSame('2020-02-29', (clone $time)->modifyDate(2, 1)->ISODate);
 
         // Last day of February.
         $time = new Time('2018-01-01');
-        static::assertSame('2018-02-28', (clone $time)->modifyDate(0, 1)->setToLastDayOfMonth()->dateISO);
+        static::assertSame('2018-02-28', (clone $time)->modifyDate(0, 1)->setToLastDayOfMonth()->ISODate);
         $time = new Time('2018-03-31');
-        static::assertSame('2018-02-28', (clone $time)->modifyDate(0, -1)->dateISO);
+        static::assertSame('2018-02-28', (clone $time)->modifyDate(0, -1)->ISODate);
 
 
         $time = new Time('2018-01-01');
-        static::assertSame('2018-02-20', (clone $time)->modifyDate(0, 0, 50)->dateISO);
+        static::assertSame('2018-02-20', (clone $time)->modifyDate(0, 0, 50)->ISODate);
     }
 
     /**
@@ -268,9 +269,9 @@ class TimeTest extends TestCase
     public function testModifyTime()
     {
         $time = new Time('2018-01-01 15:37:13');
-        static::assertSame('2018-01-01 16:38:14', (clone $time)->modifyTime(1, 1, 1)->dateTimeISO);
-        static::assertSame('2018-01-02 16:38:14', (clone $time)->modifyTime(25, 1, 1)->dateTimeISO);
-        static::assertSame('2017-12-31 14:36:12', (clone $time)->modifyTime(-25, -1, -1)->dateTimeISO);
+        static::assertSame('2018-01-01 16:38:14', (clone $time)->modifyTime(1, 1, 1)->ISODateTime);
+        static::assertSame('2018-01-02 16:38:14', (clone $time)->modifyTime(25, 1, 1)->ISODateTime);
+        static::assertSame('2017-12-31 14:36:12', (clone $time)->modifyTime(-25, -1, -1)->ISODateTime);
     }
 
     /**
@@ -320,7 +321,7 @@ class TimeTest extends TestCase
         date_default_timezone_set(BootstrapTest::TIMEZONE);
         $first = (new Time('2019-02-01'))->setToDateStart();
         $last = (new Time('2019-03-01'))->setToDateStart();
-        $diff = $first->toDatetime()->diff($last->toDatetime());
+        $diff = $first->toDateTime()->diff($last->toDateTime());
         //\SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log();
         static::assertSame(0, $diff->m);
 
@@ -414,17 +415,17 @@ class TimeTest extends TestCase
         static::assertTrue($ceil->getTimestamp() % 2 == 0, 'getTimestamp() floors microseconds');
         static::assertSame(1577880000, $ceil->getTimestamp(), 'ceilable truncated');
 
-        static::assertSame(1577880000, $floor->unixSeconds, 'floorable floored');
-        static::assertSame(1577880000, $ceil->unixSeconds, 'ceilable ceiled');
+        static::assertSame(1577880000, $floor->epochSecond, 'floorable floored');
+        static::assertSame(1577880000, $ceil->epochSecond, 'ceilable ceiled');
 
 
         // Milli/microseconds methods aren't exact, because floats.
 
-        static::assertTrue(abs(1577880000400 - $floor->unixMilliseconds) < 10, 'floorable milliseconds');
-        static::assertTrue(abs(1577880000900 - $ceil->unixMilliseconds) < 10, 'ceilable milliseconds');
+        static::assertTrue(abs(1577880000400 - $floor->epochMilli) < 10, 'floorable milliseconds');
+        static::assertTrue(abs(1577880000900 - $ceil->epochMilli) < 10, 'ceilable milliseconds');
 
-        static::assertTrue(abs(1577880000400000 - $floor->unixMicroseconds) < 10, 'floorable microseconds');
-        static::assertTrue(abs(1577880000900000 - $ceil->unixMicroseconds) < 10, 'ceilable microseconds');
+        static::assertTrue(abs(1577880000400000 - $floor->epochMicro) < 10, 'floorable microseconds');
+        static::assertTrue(abs(1577880000900000 - $ceil->epochMicro) < 10, 'ceilable microseconds');
     }
 
 
@@ -534,7 +535,7 @@ class TimeTest extends TestCase
 
                 if ($zone == 'local') {
                     if ($sign == 'positive') {
-                        static::assertSame('P20Y5M14DT11H37M59S', $diff->durationISO);
+                        static::assertSame('P20Y5M14DT11H37M59S', $diff->ISODuration);
 //                        \SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log(
 //                            'debug',
 //                            $first->toISOZonal() . ' >< ' . $last->toISOZonal() . ":\n" . $diff->format(
@@ -627,7 +628,7 @@ class TimeTest extends TestCase
 
                 if ($zone == 'local') {
                     if ($sign == 'positive') {
-                        static::assertSame('P20Y5M14DT23H0M0S', $diff->durationISO);
+                        static::assertSame('P20Y5M14DT23H0M0S', $diff->ISODuration);
 //                        \SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log(
 //                            'debug',
 //                            $first->toISOZonal() . ' >< ' . $last->toISOZonal() . ":\n" . $diff->format(

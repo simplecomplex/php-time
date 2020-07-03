@@ -47,7 +47,7 @@ namespace SimpleComplex\Time;
  * @property-read int $relativeHours
  * @property-read int $relativeMinutes
  * @property-read int $relativeSeconds
- * @property-read float $relativeMicroseconds
+ * @property-read float $relativeMicros
  *
  * Signed totals:
  * @property-read int $totalYears
@@ -56,9 +56,9 @@ namespace SimpleComplex\Time;
  * @property-read int $totalHours
  * @property-read int $totalMinutes
  * @property-read int $totalSeconds
- * @property-read float $totalMicroseconds
+ * @property-read float $totalMicros
  *
- * @property-read string $durationISO
+ * @property-read string $ISODuration
  *
  * @package SimpleComplex\Time
  */
@@ -236,7 +236,7 @@ class TimeInterval
      *
      * @var float
      */
-    protected $relativeMicroseconds;
+    protected $relativeMicros;
 
     /**
      * Total days, (days) signed.
@@ -273,7 +273,7 @@ class TimeInterval
      *
      * @var float
      */
-    protected $totalMicroseconds;
+    protected $totalMicros;
 
     /**
      * ISO 8601 duration.
@@ -282,7 +282,7 @@ class TimeInterval
      *
      * @var string
      */
-    protected $durationISO;
+    protected $ISODuration;
 
 
     /**
@@ -369,16 +369,16 @@ class TimeInterval
         $this->relativeHours = $sign * $this->h;
         $this->relativeMinutes = $sign * $this->i;
         $this->relativeSeconds = $sign * $this->s;
-        $this->relativeMicroseconds = $sign * $this->f;
+        $this->relativeMicros = $sign * $this->f;
 
         $this->totalDays = $sign * $this->days;
         $this->totalHours = ($this->totalDays * 24) + ($sign * $this->h);
         $this->totalMinutes = ($this->totalHours * 60) + ($sign * $this->i);
         $this->totalSeconds = ($this->totalMinutes * 60) + ($sign * $this->s);
-        $this->totalMicroseconds = ($this->totalSeconds + ($sign * $this->f)) * 1000000;
+        $this->totalMicros = ($this->totalSeconds + ($sign * $this->f)) * 1000000;
 
         // P1Y1M1DT1H1M1S.
-        $this->durationISO = 'P'
+        $this->ISODuration = 'P'
             // $intervalVerbatim.
             . $this->y . 'Y' . $this->m . 'M' . $this->d . 'DT'
             // $intervalUTC.
@@ -392,7 +392,7 @@ class TimeInterval
      * via \DateTimeInterface constructor.
      *
      * @see Time::diffDate()
-     * @see TimeInterval::$durationISO
+     * @see TimeInterval::$ISODuration
      * @see TimeInterval::toDateInterval()
      *
      * @return \DateInterval
@@ -413,7 +413,7 @@ class TimeInterval
          * One can set the value of a property, though (except $days).
          */
 
-        $o = new \DateInterval($this->durationISO);
+        $o = new \DateInterval($this->ISODuration);
         $o->f = $this->f;
         $o->invert = $this->invert;
         // No do; just doesn't work.

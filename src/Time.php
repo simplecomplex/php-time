@@ -38,21 +38,21 @@ namespace SimpleComplex\Time;
  * @property-read int $year
  * @property-read int $month
  * @property-read int $date
- * @property-read int $hours
- * @property-read int $minutes
- * @property-read int $seconds
- * @property-read int $milliseconds
- * @property-read int $microseconds
+ * @property-read int $hour
+ * @property-read int $minute
+ * @property-read int $second
+ * @property-read int $milli
+ * @property-read int $micro
  *
  * Unix Epoch:
- * @property-read int $unixSeconds
- * @property-read int $unixMilliseconds
- * @property-read int $unixMicroseconds
+ * @property-read int $epochSecond
+ * @property-read int $epochMilli
+ * @property-read int $epochMicro
  *
  * No-zone ISO 8601 timestamps:
- * @property-read string $dateISO  YYYY-MM-DD
- * @property-read string $timeISO  HH:ii:ss
- * @property-read string $dateTimeISO  YYYY-MM-DD HH:ii:ss
+ * @property-read string $ISODate  YYYY-MM-DD
+ * @property-read string $ISOTime  HH:ii:ss
+ * @property-read string $ISODateTime  YYYY-MM-DD HH:ii:ss
  *
  *
  * @package SimpleComplex\Time
@@ -71,11 +71,11 @@ class Time extends \DateTime implements \JsonSerializable
         'year' => 'Y',
         'month' => 'm',
         'date' => 'd',
-        'hours' => 'H',
-        'minutes' => 'i',
-        'seconds' => 's',
-        'milliseconds' => 'v',
-        'microseconds' => 'u',
+        'hour' => 'H',
+        'minute' => 'i',
+        'second' => 's',
+        'milli' => 'v',
+        'micro' => 'u',
     ];
 
     /**
@@ -87,9 +87,9 @@ class Time extends \DateTime implements \JsonSerializable
      * @var string[]
      */
     public const TIME_PATTERN_FORMAT = [
-        'dateISO' => 'Y-m-d',
-        'timeISO' => 'H:i:s',
-        'dateTimeISO' => 'Y-m-d H:i:s',
+        'ISODate' => 'Y-m-d',
+        'ISOTime' => 'H:i:s',
+        'ISODateTime' => 'Y-m-d H:i:s',
     ];
 
     /**
@@ -713,7 +713,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime constructor.
      */
-    public function toDatetime() : \DateTime
+    public function toDateTime() : \DateTime
     {
         return new \DateTime($this->format('Y-m-d H:i:s.u'), $this->getTimezone());
     }
@@ -1275,15 +1275,15 @@ class Time extends \DateTime implements \JsonSerializable
         switch ($key) {
             case 'timezoneName':
                 return $this->timezoneName;
-            case 'unixSeconds':
+            case 'epochSecond':
                 // floor'ed/truncated microseconds.
                 return $this->getTimestamp();
-            case 'unixMilliseconds':
+            case 'epochMilli':
                 // Uses the 'u' format instead of 'v' for consistency with
                 // toUnixMicroseconds().
                 // floor'ed/truncated microseconds.
                 return ($this->getTimestamp() * 1000) + (int) substr($this->format('u'), 0, 3);
-            case 'unixMicroseconds':
+            case 'epochMicro':
                 return ($this->getTimestamp() * 1000000) + (int) $this->format('u');
         }
         /**
@@ -1326,40 +1326,79 @@ class Time extends \DateTime implements \JsonSerializable
      */
     public function __call($name, $arguments)
     {
+        // Getter replaced by property.
         if (strpos($name, 'get') === 0) {
-            /**
-             * Final; self not static.
-             * @see Time::TIME_PART_FORMAT
-             */
-            $parts = array_keys(self::TIME_PART_FORMAT);
-            foreach ($parts as $part) {
-                $method = 'get' . ucfirst($part);
-                if ($name == $method) {
-                    // Not @trigger_error() because important.
-                    trigger_error(
-                        __CLASS__ . '::' . $name . ' method is deprecated and will be removed soon'
-                        . ', use instance property[' . $part . '] instead.',
-                        E_USER_DEPRECATED
-                    );
-                    return $this->__get($part);
-                }
+            $property = null;
+            switch ($name) {
+                case 'getYear':
+                    $property = 'year';
+                    break;
+                case 'getMonth':
+                    $property = 'month';
+                    break;
+                case 'getDate':
+                    $property = 'date';
+                    break;
+                case 'getHours':
+                    $property = 'hour';
+                    break;
+                case 'getMinutes':
+                    $property = 'minute';
+                    break;
+                case 'getSeconds':
+                    $property = 'second';
+                    break;
+                case 'getMilliseconds':
+                    $property = 'milli';
+                    break;
+                case 'getMicroseconds':
+                    $property = 'micro';
+                    break;
+                case 'getDateISO':
+                    $property = 'ISODate';
+                    break;
+                case 'getTimeISO':
+                    $property = 'ISOTime';
+                    break;
+                case 'getDateTimeISO':
+                    $property = 'ISODateTime';
+                    break;
             }
-            /**
-             * Final; self not static.
-             * @see Time::TIME_PATTERN_FORMAT
-             */
-            $patterns = array_keys(self::TIME_PATTERN_FORMAT);
-            foreach ($patterns as $pattern) {
-                $method = 'get' . ucfirst($pattern);
-                if ($name == $method) {
-                    // Not @trigger_error() because important.
-                    trigger_error(
-                        __CLASS__ . '::' . $name . ' method is deprecated and will be removed soon'
-                        . ', use instance property[' . $pattern . '] instead.',
-                        E_USER_DEPRECATED
-                    );
-                    return $this->__get($pattern);
-                }
+            if ($property) {
+                // Not @trigger_error() because important.
+                trigger_error(
+                    __CLASS__ . '::' . $name . ' method is deprecated and will be removed soon'
+                    . ', use instance property[' . $property . '] instead.',
+                    E_USER_DEPRECATED
+                );
+                return $this->__get($property);
+            }
+
+            // Renamed methods.
+            $method = null;
+            switch ($name) {
+                case 'toDatetime':
+                    // Case of Time.
+                    $method = 'toDateTime';
+                    break;
+                case 'toDateISOLocal':
+                    $method = 'toISOLocalDate';
+                    break;
+                case 'toTimeISOLocal':
+                    $method = 'toISOLocalTime';
+                    break;
+                case 'toDateTimeISOLocal':
+                    $method = 'toISOLocalDateTime';
+                    break;
+            }
+            if ($method) {
+                // Not @trigger_error() because important.
+                trigger_error(
+                    __CLASS__ . '::' . $name . ' method is deprecated and will be removed soon'
+                    . ', use method[' . $method . '] instead.',
+                    E_USER_DEPRECATED
+                );
+                return $this->{$method}();
             }
         }
 
@@ -1376,7 +1415,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::setTimezone().
      */
-    public function toDateISOLocal() : string
+    public function toISOLocalDate() : string
     {
         if ($this->timezoneIsLocal) {
             return $this->format('Y-m-d');
@@ -1394,7 +1433,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::setTimezone().
      */
-    public function toTimeISOLocal() : string
+    public function toISOLocalTime() : string
     {
         if ($this->timezoneIsLocal) {
             return $this->format('H:i:s');
@@ -1412,7 +1451,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::setTimezone().
      */
-    public function toDateTimeISOLocal() : string
+    public function toISOLocalDateTime() : string
     {
         if ($this->timezoneIsLocal) {
             return $this->format('Y-m-d H:i:s');

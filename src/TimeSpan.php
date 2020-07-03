@@ -30,8 +30,8 @@ namespace SimpleComplex\Time;
  * @property-read string $timezoneName
  * @property-read TimeImmutable $from
  * @property-read TimeImmutable $to
- * @property-read float $fromUnixMicroseconds
- * @property-read float $toUnixMicroseconds
+ * @property-read float $fromEpochMicro
+ * @property-read float $toEpochMicro
  *
  * @package SimpleComplex\Time
  */
@@ -50,7 +50,7 @@ class TimeSpan
     /**
      * @var float
      */
-    protected $fromUnixMicroseconds;
+    protected $fromEpochMicro;
 
     /**
      *
@@ -61,7 +61,7 @@ class TimeSpan
     /**
      * @var float
      */
-    protected $toUnixMicroseconds;
+    protected $toEpochMicro;
 
     /**
      * Difference between $from and $to is allowed to be zero, but not negative.
@@ -94,12 +94,12 @@ class TimeSpan
 
         // There's a cost to producing unixMicroseconds,
         // thus saved once and for all.
-        $this->fromUnixMicroseconds = $this->from->unixMicroseconds;
-        $this->toUnixMicroseconds = $this->to->unixMicroseconds;
+        $this->fromEpochMicro = $this->from->epochMicro;
+        $this->toEpochMicro = $this->to->epochMicro;
 
         // Allowed to be same, because may represent a period of a single date
         // despite same time of day.
-        if ($this->fromUnixMicroseconds > $this->toUnixMicroseconds) {
+        if ($this->fromEpochMicro > $this->toEpochMicro) {
             throw new \InvalidArgumentException(
                 'Arg $from[' . $this->from . '] cannot be later than arg $to[' . $this->to . '].'
             );
@@ -146,7 +146,7 @@ class TimeSpan
             return $overlap;
         }
 
-        if ($timeSpan->fromUnixMicroseconds > $this->toUnixMicroseconds) {
+        if ($timeSpan->fromEpochMicro > $this->toEpochMicro) {
             return $this->to->diffTime($timeSpan->from);
         }
         // Negative.
@@ -205,10 +205,10 @@ class TimeSpan
      */
     public function overlap(TimeSpan $timeSpan)
     {
-        $baseline_from = $this->fromUnixMicroseconds;
-        $baseline_to = $this->toUnixMicroseconds;
-        $subject_from = $timeSpan->fromUnixMicroseconds;
-        $subject_to = $timeSpan->toUnixMicroseconds;
+        $baseline_from = $this->fromEpochMicro;
+        $baseline_to = $this->toEpochMicro;
+        $subject_from = $timeSpan->fromEpochMicro;
+        $subject_to = $timeSpan->toEpochMicro;
 
         if ($subject_to >= $baseline_from && $subject_from <= $baseline_to) {
             // Identity.
@@ -256,8 +256,8 @@ class TimeSpan
             case 'timezoneName':
             case 'from':
             case 'to':
-            case 'fromUnixMicroseconds':
-            case 'toUnixMicroseconds':
+            case 'fromEpochMicro':
+            case 'toEpochMicro':
                 return $this->{$key};
         }
         throw new \OutOfBoundsException(get_class($this) . ' instance exposes no property[' . $key . '].');
