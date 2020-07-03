@@ -46,9 +46,8 @@ namespace SimpleComplex\Time;
  *
  * Unix Epoch:
  * @property-read int $unixSeconds
- * Floats to avoid hitting precision limit.
- * @property-read float $unixMilliseconds
- * @property-read float $unixMicroseconds
+ * @property-read int $unixMilliseconds
+ * @property-read int $unixMicroseconds
  *
  * No-zone ISO 8601 timestamps:
  * @property-read string $dateISO  YYYY-MM-DD
@@ -1283,9 +1282,9 @@ class Time extends \DateTime implements \JsonSerializable
                 // Uses the 'u' format instead of 'v' for consistency with
                 // toUnixMicroseconds().
                 // floor'ed/truncated microseconds.
-                return (float) ($this->getTimestamp() * 1000) + (float) substr($this->format('u'), 0, 3);
+                return ($this->getTimestamp() * 1000) + (int) substr($this->format('u'), 0, 3);
             case 'unixMicroseconds':
-                return (float) ($this->getTimestamp() * 1000000) + (float) $this->format('u');
+                return ($this->getTimestamp() * 1000000) + (int) $this->format('u');
         }
         /**
          * Final; self not static.
