@@ -43,7 +43,10 @@ class TimeSpan
     protected $timezoneName;
 
     /**
-     * @var TimeImmutable
+     * Time if constructor arg $from was a frozen Time,
+     * otherwise TimeImmutable.
+     *
+     * @var TimeImmutable|Time
      */
     protected $from;
 
@@ -53,8 +56,10 @@ class TimeSpan
     protected $fromEpochMicro;
 
     /**
+     * Time if constructor arg $to was a frozen Time,
+     * otherwise TimeImmutable.
      *
-     * @var TimeImmutable
+     * @var TimeImmutable|Time
      */
     protected $to;
 
@@ -81,9 +86,24 @@ class TimeSpan
      */
     public function __construct(\DateTimeInterface $from, \DateTimeInterface $to)
     {
-        $this->from = $from instanceof TimeImmutable ? $from : TimeImmutable::createFromDateTime($from);
+        if ($from instanceof TimeImmutable
+            || ($from instanceof Time && $from->isFrozen())
+        ) {
+            $this->from = $from;
+        }
+        else {
+            $this->from = TimeImmutable::createFromDateTime($from);
+        }
         $this->timezoneName = $this->from->timezoneName;
-        $this->to = $to instanceof TimeImmutable ? $to : TimeImmutable::createFromDateTime($to);
+
+        if ($to instanceof TimeImmutable
+            || ($to instanceof Time && $to->isFrozen())
+        ) {
+            $this->to = $to;
+        }
+        else {
+            $this->to = TimeImmutable::createFromDateTime($to);
+        }
 
         if ($this->to->timezoneName != $this->timezoneName) {
             throw new \InvalidArgumentException(

@@ -17,12 +17,11 @@ to \DateTime.getTimestamp() rounds microseconds; instead of floor'ing.
 
 ### Changed
 * Requires PHP >=7.2; not 7.0.
+* Doesn't depend on any other packages.
 * require-dev phpunit ^8; not ^6.5.
 * resolve() check for DateTimeInterface, not just DateTime.
-* TimeInterval now implements Explorable\ExplorableInterface instead of
-extending Utils\Explorable.
-* TimeInterval renamed; from TimeIntervalConstant (daft: \DateInterval is
-effectively constant, by itself).
+* TimeInterval no longer extends Utils\Explorable.
+* TimeInterval renamed; from TimeIntervalConstant.
 * diffTime() replaces diffConstant(), the latter now deprecated.
 * TimeInterval::toDateInterval() replaces getMutable(); now deprecated.
 * Properties for time parts and simple no-zone ISO patterns replace methods;
