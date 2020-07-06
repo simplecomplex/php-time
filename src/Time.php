@@ -937,6 +937,24 @@ class Time extends \DateTime implements \JsonSerializable
     }
 
     /**
+     * For safer date-only comparison, sets to midnight 23:59:59.999999.
+     *
+     * @return $this|Time
+     *
+     * @throws \RuntimeException
+     *      Frozen.
+     * @throws \Exception
+     *      Propagated; \DateTime::setTime()
+     */
+    public function setToDateEnd() : Time
+    {
+        if ($this->frozen) {
+            throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
+        }
+        return $this->setTime(23, 59, 59, 999999);
+    }
+
+    /**
      * Set to first day of a month.
      *
      * @param int|null $month

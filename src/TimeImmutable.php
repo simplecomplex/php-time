@@ -307,6 +307,15 @@ class TimeImmutable extends Time
     /**
      * {@inheritDoc}
      */
+    public function setToDateEnd() : Time
+    {
+        $t = $this->cloneToMutable()->setToDateEnd();
+        return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function setToFirstDayOfMonth(int $month = null) : Time
     {
         $t = $this->cloneToMutable()->setToFirstDayOfMonth();
