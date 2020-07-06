@@ -16,7 +16,7 @@ to \DateTime.getTimestamp() rounds microseconds; instead of floor'ing.
 * TimeSpan.
 
 ### Changed
-* Requires PHP >=7.2; not 7.0.
+* Requires PHP >=7.2 (not 7.0), and 64-bit.
 * Doesn't depend on any other packages.
 * require-dev phpunit ^8; not ^6.5.
 * resolve() check for DateTimeInterface, not just DateTime.
