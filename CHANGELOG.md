@@ -4,15 +4,13 @@ All notable changes to **simplecomplex/time** will be documented in this file,
 using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
 
-## [Unreleased]
+## [1.0]
 
 ### Added
 * Forked from simplecomplex/utils (v2.3) time classes.
-* Properties unixSeconds|unixMilliseconds|unixMicroseconds, which contrary
-to \DateTime.getTimestamp() rounds microseconds; instead of floor'ing.
 * Time::setSubSecondPrecision() to set ISO/JSON precision ad-hoc across all new
   instances.
-* TimeImmutable
+* TimeImmutable.
 * TimeSpan.
 
 ### Changed
