@@ -4,12 +4,12 @@
 - [Requirements](#Requirements)
 - [License](#MIT-licensed)
 
-**[Time](src/Time.php)** extends the native DateTime class to fix shortcomings and defects,  
+**[Time](src/Time.php)** extends native \DateTime to fix shortcomings and defects,  
 and provide more, simpler and safer getters and setters.
 
 Features:
  * enhanced timezone awareness
- * diff - `diffTime()` - works correctly with non-UTC timezones
+ * diff - diffTime() - works correctly with non-UTC timezones
  * safer formatting and modifying
  * is stringable (sic!), to ISO-8601
  * JSON serializes to string ISO-8601 with timezone marker
