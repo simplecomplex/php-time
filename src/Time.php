@@ -271,15 +271,15 @@ class Time extends \DateTime implements \JsonSerializable
 
     /**
      * @param \DateTimeImmutable $dateTimeImmutable
-     * @return Time
+     * @return static|Time
      *
      * @throws \Exception
+     *      Propagated; \DateTime constructor.
      */
-    public static function createFromImmutable(\DateTimeImmutable $dateTimeImmutable) : Time
+    public static function createFromImmutable(/*\DateTimeImmutable*/ $dateTimeImmutable) : Time
     {
         /**
-         * \DateTime hasn't got this method before PHP 7.3,
-         * but this implementation should work anyway.
+         * \DateTime hasn't got this method before PHP 7.3.
          * @see \DateTime::createFromImmutable()
          */
         return new static($dateTimeImmutable->format('Y-m-d H:i:s.u'), $dateTimeImmutable->getTimezone());

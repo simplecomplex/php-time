@@ -4,6 +4,13 @@ All notable changes to **simplecomplex/time** will be documented in this file,
 using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
 
+## [Unreleased]
+
+### Fixed
+* Time::createFromImmutable() cannot type-hint it's parameter, because parent
+\DateTime::createFromImmutable() - available from PHP 7.3 - doesn't.
+
+
 ## [1.0]
 
 ### Added
