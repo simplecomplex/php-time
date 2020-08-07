@@ -4,14 +4,15 @@ All notable changes to **simplecomplex/time** will be documented in this file,
 using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
 
-## [Unreleased]
+## [1.0.1] - 2020-08-07
 
 ### Fixed
 * Time::createFromImmutable() cannot type-hint it's parameter, because parent
 \DateTime::createFromImmutable() - available from PHP 7.3 - doesn't.
+* TimeSpan::overlap() return type type-hint.
 
 
-## [1.0]
+## [1.0] - 2020-07-08
 
 ### Added
 * Forked from simplecomplex/utils (v2.3) time classes.
