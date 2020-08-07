@@ -223,14 +223,14 @@ class Time extends \DateTime implements \JsonSerializable
     /**
      * @param \DateInterval $interval
      *
-     * @return $this|\DateTime|Time
+     * @return static
      *
      * @throws \RuntimeException
      *      Frozen.
      * @throws \Exception
      *      Propagated; \DateTime::add().
      */
-    public function add(/*\DateInterval*/ $interval) : \DateTime /*self invariant*/
+    public function add(/*\DateInterval*/ $interval) : \DateTime /*self invariant - static*/
     {
         // NB: Argument type hinting (\DateInterval $interval)
         // would provoke E_WARNING when cloning.
@@ -252,12 +252,13 @@ class Time extends \DateTime implements \JsonSerializable
      * @param \DateTimeZone|null $timezone
      *      Default: local timezone.
      *
-     * @return static|Time
+     * @return static|false
+     *      False: Parent \DateTime method failure.
      *
      * @throws \Exception
      *      Propagated; \DateTime::createFromFormat().
      */
-    public static function createFromFormat($format, $time, /*?\DateTimeZone*/ $timezone = null) : Time
+    public static function createFromFormat($format, $time, /*?\DateTimeZone*/ $timezone = null) : Time /*static|false*/
     {
         // NB: Argument type hinting (\DateTimeZone $timezone)
         // would provoke E_WARNING.
@@ -271,12 +272,12 @@ class Time extends \DateTime implements \JsonSerializable
 
     /**
      * @param \DateTimeImmutable $dateTimeImmutable
-     * @return static|Time
+     * @return static
      *
      * @throws \Exception
      *      Propagated; \DateTime constructor.
      */
-    public static function createFromImmutable(/*\DateTimeImmutable*/ $dateTimeImmutable) : Time
+    public static function createFromImmutable(/*\DateTimeImmutable*/ $dateTimeImmutable) : Time /*static*/
     {
         /**
          * \DateTime hasn't got this method before PHP 7.3.
@@ -293,14 +294,14 @@ class Time extends \DateTime implements \JsonSerializable
     /**
      * @param string $modify
      *
-     * @return $this|\DateTime|Time
+     * @return static
      *
      * @throws \RuntimeException
      *      Frozen.
      * @throws \Exception
      *      Propagated; \DateTime::modify().
      */
-    public function modify($modify) : \DateTime /*self invariant*/
+    public function modify($modify) : \DateTime /*self invariant - static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -318,14 +319,14 @@ class Time extends \DateTime implements \JsonSerializable
      * @param int $month
      * @param int $day
      *
-     * @return $this|\DateTime|Time
+     * @return static
      *
      * @throws \RuntimeException
      *      Frozen.
      * @throws \Exception
      *      Propagated; \DateTime::setDate().
      */
-    public function setDate($year, $month, $day) : \DateTime /*self invariant*/
+    public function setDate($year, $month, $day) : \DateTime /*self invariant - static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -338,14 +339,14 @@ class Time extends \DateTime implements \JsonSerializable
      * @param int $week
      * @param int $day
      *
-     * @return $this|\DateTime|Time
+     * @return static
      *
      * @throws \RuntimeException
      *      Frozen.
      * @throws \Exception
      *      Propagated; \DateTime::setIsoDate().
      */
-    public function setISODate($year, $week, $day = 1) : \DateTime /*self invariant*/
+    public function setISODate($year, $week, $day = 1) : \DateTime /*self invariant - static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -359,14 +360,15 @@ class Time extends \DateTime implements \JsonSerializable
      * @param int $second
      * @param int $microseconds
      *
-     * @return $this|\DateTime|Time
+     * @return static|false
+     *      False: Parent \DateTime method failure.
      *
      * @throws \RuntimeException
      *      Frozen.
      * @throws \Exception
      *      Propagated; \DateTime::setTime()
      */
-    public function setTime($hour, $minute, $second = 0, $microseconds = 0) : \DateTime /*self invariant*/
+    public function setTime($hour, $minute, $second = 0, $microseconds = 0) : \DateTime /*self invariant - static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -381,14 +383,14 @@ class Time extends \DateTime implements \JsonSerializable
     /**
      * @param int $unixtimestamp
      *
-     * @return $this|\DateTime|Time
+     * @return static
      *
      * @throws \RuntimeException
      *      Frozen.
      * @throws \Exception
      *      Propagated; \DateTime::setTimestamp().
      */
-    public function setTimestamp($unixtimestamp) : \DateTime /*self invariant*/
+    public function setTimestamp($unixtimestamp) : \DateTime /*self invariant - static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -402,14 +404,14 @@ class Time extends \DateTime implements \JsonSerializable
      *
      * @param \DateTimeZone $timezone
      *
-     * @return $this|\DateTime
+     * @return static
      *
      * @throws \RuntimeException
      *      Frozen.
      * @throws \Exception
      *      Propagated; \DateTime::setTimezone().
      */
-    public function setTimezone(/*\DateTimeZone*/ $timezone) : \DateTime /*self invariant*/
+    public function setTimezone(/*\DateTimeZone*/ $timezone) : \DateTime /*self invariant - static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -428,14 +430,14 @@ class Time extends \DateTime implements \JsonSerializable
     /**
      * @param \DateInterval $interval
      *
-     * @return $this|\DateTime|Time
+     * @return static
      *
      * @throws \RuntimeException
      *      Frozen.
      * @throws \Exception
      *      Propagated; \DateTime::sub().
      */
-    public function sub(/*\DateInterval*/ $interval) : \DateTime /*self invariant*/
+    public function sub(/*\DateInterval*/ $interval) : \DateTime /*self invariant - static*/
     {
         // NB: Argument type hinting (\DateInterval $interval)
         // would provoke E_WARNING when cloning.
@@ -588,7 +590,7 @@ class Time extends \DateTime implements \JsonSerializable
      *
      * @param \DateTimeInterface $dateTime
      *
-     * @return static|Time
+     * @return static
      *
      * @throws \Exception
      *      Propagated; \DateTime constructor.
@@ -618,7 +620,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @param bool $keepForeignTimezone
      *      False: set to local (default) timezone.
      *
-     * @return Time
+     * @return static|Time
      *      Identical object if arg time already is Time and no transformations
      *      necessary.
      *
@@ -626,7 +628,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime constructor, \DateTime::setTimestamp().
      */
-    public static function resolve($time, $keepForeignTimezone = false) : Time
+    public static function resolve($time, $keepForeignTimezone = false) : Time /*static*/
     {
         /** @var Time $t */
         $t = null;
@@ -921,14 +923,14 @@ class Time extends \DateTime implements \JsonSerializable
     /**
      * For safer date-only comparison, sets to midnight 00:00:00.000000.
      *
-     * @return $this|Time
+     * @return static
      *
      * @throws \RuntimeException
      *      Frozen.
      * @throws \Exception
      *      Propagated; \DateTime::setTime()
      */
-    public function setToDateStart() : Time
+    public function setToDateStart() : Time /*static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -939,14 +941,14 @@ class Time extends \DateTime implements \JsonSerializable
     /**
      * For safer date-only comparison, sets to midnight 23:59:59.999999.
      *
-     * @return $this|Time
+     * @return static
      *
      * @throws \RuntimeException
      *      Frozen.
      * @throws \Exception
      *      Propagated; \DateTime::setTime()
      */
-    public function setToDateEnd() : Time
+    public function setToDateEnd() : Time /*static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -960,7 +962,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @param int|null $month
      *      Null: month of this object.
      *
-     * @return Time
+     * @return static
      *
      * @throws \RuntimeException
      *      Frozen.
@@ -969,7 +971,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::setDate()
      */
-    public function setToFirstDayOfMonth(int $month = null) : Time
+    public function setToFirstDayOfMonth(int $month = null) : Time /*static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -996,7 +998,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @param int|null $month
      *      Null: month of this object.
      *
-     * @return Time
+     * @return static
      *
      * @throws \RuntimeException
      *      Frozen.
@@ -1005,7 +1007,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::setDate()
      */
-    public function setToLastDayOfMonth(int $month = null) : Time
+    public function setToLastDayOfMonth(int $month = null) : Time /*static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -1033,7 +1035,7 @@ class Time extends \DateTime implements \JsonSerializable
      *
      * @param string $modify
      *
-     * @return $this|Time
+     * @return static
      *
      * @throws \RuntimeException
      *      Frozen.
@@ -1042,7 +1044,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::modify().
      */
-    public function modifySafely(string $modify) : Time
+    public function modifySafely(string $modify) : Time /*static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -1083,14 +1085,14 @@ class Time extends \DateTime implements \JsonSerializable
      * @param int $days
      *      Subtracts if negative.
      *
-     * @return $this|Time
+     * @return static
      *
      * @throws \RuntimeException
      *      Frozen.
      * @throws \Exception
      *      Propagated; \DateTime::setDate(), \DateTime::modify().
      */
-    public function modifyDate(int $years, int $months = 0, int $days = 0) : Time
+    public function modifyDate(int $years, int $months = 0, int $days = 0) : Time /*static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -1167,14 +1169,14 @@ class Time extends \DateTime implements \JsonSerializable
      *      Subtracts if negative.
      *      Ignored when PHP 7.0 (<7.1).
      *
-     * @return $this|Time
+     * @return static
      *
      * @throws \RuntimeException
      *      Frozen.
      * @throws \Exception
      *      Propagated; \DateTime::modify().
      */
-    public function modifyTime(int $hours, int $minutes = 0, int $seconds = 0, int $microseconds = 0) : Time
+    public function modifyTime(int $hours, int $minutes = 0, int $seconds = 0, int $microseconds = 0) : Time /*static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -1204,7 +1206,7 @@ class Time extends \DateTime implements \JsonSerializable
     // Informational.---------------------------------------
 
     /**
-     * @param int $year
+     * @param int|null $year
      *      Default: year of this object.
      *
      * @return bool

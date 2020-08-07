@@ -89,7 +89,7 @@ class TimeLocal extends Time
      *
      * @param \DateTimeZone $timezone
      *
-     * @return $this|\DateTime
+     * @return static
      *
      * @throws \BadMethodCallException
      *      On attempt to set timezone.
@@ -98,7 +98,7 @@ class TimeLocal extends Time
      * @throws \Exception
      *      Propagated; \DateTime::setTimezone().
      */
-    public function setTimezone(/*\DateTimeZone*/ $timezone) : \DateTime /*self invariant*/
+    public function setTimezone(/*\DateTimeZone*/ $timezone) : \DateTime /*self invariant - static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
