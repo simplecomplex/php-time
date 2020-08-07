@@ -144,6 +144,7 @@ class TimeSpan
      * or this from and arg $timeSpan to (negative).
      *
      * @param TimeSpan $timeSpan
+     *
      * @return TimeInterval|int
      *      Int: Arg $timeSpan overlaps this.
      *
@@ -152,7 +153,7 @@ class TimeSpan
      * @throws \Exception
      *      Propagated.
      */
-    public function diffTimeSpan(TimeSpan $timeSpan)
+    public function diffTimeSpan(TimeSpan $timeSpan) /*: PHP8:TimeInterval|int*/
     {
         if ($timeSpan->timezoneName != $this->timezoneName) {
             throw new \InvalidArgumentException(
@@ -223,7 +224,7 @@ class TimeSpan
      * @throws \Exception
      *      Propagated.
      */
-    public function overlap(TimeSpan $timeSpan)
+    public function overlap(TimeSpan $timeSpan) : int
     {
         $baseline_from = $this->fromEpochMicro;
         $baseline_to = $this->toEpochMicro;

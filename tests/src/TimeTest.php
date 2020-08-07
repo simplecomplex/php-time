@@ -19,7 +19,7 @@ use SimpleComplex\Time\TimeSpan;
 /**
  * @code
  * // CLI, in document root:
- * vendor/bin/phpunit --do-not-cache-result vendor/simplecomplex/time/tests/src/TimeTest.php
+ * backend/vendor/bin/phpunit --do-not-cache-result backend/vendor/simplecomplex/time/tests/src/TimeTest.php
  * @endcode
  *
  * @package SimpleComplex\Tests\Time
@@ -32,6 +32,20 @@ class TimeTest extends TestCase
      * @see https://github.com/sebastianbergmann/phpunit/issues/3758
      */
     use ExpectWarningTrait;
+
+
+    public function testDateTimeArgumentTypeHinting()
+    {
+        date_default_timezone_set(BootstrapTest::TIMEZONE);
+
+        /**
+         * Fails if Time::() type-hints it's parameter as \DateInterval.
+         * @see Time::add()
+         */
+        $time = new Time();
+        $clone = clone $time;
+        static::assertTrue($clone->epochMicro === $time->epochMicro);
+    }
 
     /**
      * @see \SimpleComplex\Time\Time::validateTimezoneDefault()

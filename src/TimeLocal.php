@@ -64,7 +64,7 @@ class TimeLocal extends Time
      * if the timezone doesn't match local timezone.
      *
      * @param string $time
-     * @param \DateTimeZone $timezone
+     * @param \DateTimeZone|null $timezone
      *
      * @throws \Exception
      *      Propagated; \DateTime::setTimezone().
@@ -98,7 +98,7 @@ class TimeLocal extends Time
      * @throws \Exception
      *      Propagated; \DateTime::setTimezone().
      */
-    public function setTimezone(/*\DateTimeZone*/ $timezone) : \DateTime /*self invariant - static*/
+    public function setTimezone(/*\DateTimeZone*/ $timezone) : \DateTime /*self invariant - PHP8:static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');

@@ -230,12 +230,13 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::add().
      */
-    public function add(/*\DateInterval*/ $interval) : \DateTime /*self invariant - static*/
+    public function add(/*\DateInterval*/ $interval) : \DateTime /*self invariant - PHP8:static*/
     {
         // NB: Argument type hinting (\DateInterval $interval)
         // would provoke E_WARNING when cloning.
         // Catch 22: Specs say that native \DateTime method is type hinted,
         // but warning when cloning says it isn't.
+        // Re-tested with PHP 7.4.8.
 
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -258,7 +259,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::createFromFormat().
      */
-    public static function createFromFormat($format, $time, /*?\DateTimeZone*/ $timezone = null) : Time /*static|false*/
+    public static function createFromFormat($format, $time, /*\DateTimeZone*/ $timezone = null) : Time /*PHP8:static|false*/
     {
         // NB: Argument type hinting (\DateTimeZone $timezone)
         // would provoke E_WARNING.
@@ -277,7 +278,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime constructor.
      */
-    public static function createFromImmutable(/*\DateTimeImmutable*/ $dateTimeImmutable) : Time /*static*/
+    public static function createFromImmutable(/*\DateTimeImmutable*/ $dateTimeImmutable) : Time /*PHP8:static*/
     {
         /**
          * \DateTime hasn't got this method before PHP 7.3.
@@ -301,7 +302,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::modify().
      */
-    public function modify($modify) : \DateTime /*self invariant - static*/
+    public function modify($modify) : \DateTime /*self invariant - PHP8:static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -326,7 +327,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::setDate().
      */
-    public function setDate($year, $month, $day) : \DateTime /*self invariant - static*/
+    public function setDate($year, $month, $day) : \DateTime /*self invariant - PHP8:static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -346,7 +347,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::setIsoDate().
      */
-    public function setISODate($year, $week, $day = 1) : \DateTime /*self invariant - static*/
+    public function setISODate($year, $week, $day = 1) : \DateTime /*self invariant - PHP8:static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -368,7 +369,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::setTime()
      */
-    public function setTime($hour, $minute, $second = 0, $microseconds = 0) : \DateTime /*self invariant - static*/
+    public function setTime($hour, $minute, $second = 0, $microseconds = 0) : \DateTime /*self invariant - PHP8:static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -390,7 +391,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::setTimestamp().
      */
-    public function setTimestamp($unixtimestamp) : \DateTime /*self invariant - static*/
+    public function setTimestamp($unixtimestamp) : \DateTime /*self invariant - PHP8:static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -411,7 +412,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::setTimezone().
      */
-    public function setTimezone(/*\DateTimeZone*/ $timezone) : \DateTime /*self invariant - static*/
+    public function setTimezone(/*\DateTimeZone*/ $timezone) : \DateTime /*self invariant - PHP8:static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -437,7 +438,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::sub().
      */
-    public function sub(/*\DateInterval*/ $interval) : \DateTime /*self invariant - static*/
+    public function sub(/*\DateInterval*/ $interval) : \DateTime /*self invariant - PHP8:static*/
     {
         // NB: Argument type hinting (\DateInterval $interval)
         // would provoke E_WARNING when cloning.
@@ -628,7 +629,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime constructor, \DateTime::setTimestamp().
      */
-    public static function resolve($time, $keepForeignTimezone = false) : Time /*static*/
+    public static function resolve($time, $keepForeignTimezone = false) : Time /*PHP8:static*/
     {
         /** @var Time $t */
         $t = null;
@@ -786,7 +787,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::setTimezone().
      */
-    public function setTimezoneToLocal() : \DateTime /*self invariant*/
+    public function setTimezoneToLocal() : \DateTime /*self invariant - PHP8:static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -930,7 +931,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::setTime()
      */
-    public function setToDateStart() : Time /*static*/
+    public function setToDateStart() : Time /*PHP8:static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -948,7 +949,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::setTime()
      */
-    public function setToDateEnd() : Time /*static*/
+    public function setToDateEnd() : Time /*PHP8:static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -971,7 +972,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::setDate()
      */
-    public function setToFirstDayOfMonth(int $month = null) : Time /*static*/
+    public function setToFirstDayOfMonth(int $month = null) : Time /*PHP8:static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -1007,7 +1008,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::setDate()
      */
-    public function setToLastDayOfMonth(int $month = null) : Time /*static*/
+    public function setToLastDayOfMonth(int $month = null) : Time /*PHP8:static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -1044,7 +1045,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::modify().
      */
-    public function modifySafely(string $modify) : Time /*static*/
+    public function modifySafely(string $modify) : Time /*PHP8:static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -1092,7 +1093,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::setDate(), \DateTime::modify().
      */
-    public function modifyDate(int $years, int $months = 0, int $days = 0) : Time /*static*/
+    public function modifyDate(int $years, int $months = 0, int $days = 0) : Time /*PHP8:static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
@@ -1176,7 +1177,7 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::modify().
      */
-    public function modifyTime(int $hours, int $minutes = 0, int $seconds = 0, int $microseconds = 0) : Time /*static*/
+    public function modifyTime(int $hours, int $minutes = 0, int $seconds = 0, int $microseconds = 0) : Time /*PHP8:static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
