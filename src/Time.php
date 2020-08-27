@@ -1328,6 +1328,69 @@ class Time extends \DateTime implements \JsonSerializable
     }
 
     /**
+     * @deprecated
+     */
+    public function getYear() {}
+    /**
+     * @deprecated
+     */
+    public function getMonth() {}
+    /**
+     * @deprecated
+     */
+    public function getDate() {}
+    /**
+     * @deprecated
+     */
+    public function getHours() {}
+    /**
+     * @deprecated
+     */
+    public function getMinutes() {}
+    /**
+     * @deprecated
+     */
+    public function getSeconds() {}
+    /**
+     * @deprecated
+     */
+    public function getMilliseconds() {}
+    /**
+     * @deprecated
+     */
+    public function getMicroseconds() {}
+    /**
+     * @deprecated
+     */
+    public function getDateISO() {}
+    /**
+     * @deprecated
+     */
+    public function getTimeISO() {}
+    /**
+     * @deprecated
+     */
+    public function getDateTimeISO() {}
+    /*
+     * Case changed.
+     * @deprecated
+     *
+    public function toDatetime() {}
+     */
+    /**
+     * @deprecated
+     */
+    public function toDateISOLocal() {}
+    /**
+     * @deprecated
+     */
+    public function toTimeISOLocal() {}
+    /**
+     * @deprecated
+     */
+    public function toDateTimeISOLocal() {}
+
+    /**
      * Handles methods which existed in simplecomplex/utils(time),
      * now deprecated:
      * - getYear, getMonth, getDate, getHours, getMinutes, getSeconds,
