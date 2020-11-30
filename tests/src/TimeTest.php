@@ -13,6 +13,7 @@ use PHPUnit\Framework\TestCase;
 use Jasny\PHPUnit\ExpectWarningTrait;
 
 use SimpleComplex\Time\Time;
+use SimpleComplex\Time\TimeLocal;
 use SimpleComplex\Time\TimeImmutable;
 use SimpleComplex\Time\TimeSpan;
 
@@ -287,6 +288,90 @@ class TimeTest extends TestCase
         static::assertSame('2018-01-02 16:38:14', (clone $time)->modifyTime(25, 1, 1)->ISODateTime);
         static::assertSame('2017-12-31 14:36:12', (clone $time)->modifyTime(-25, -1, -1)->ISODateTime);
     }
+
+    /**
+     * @see \SimpleComplex\Time\Time::cloneCorrectTimezone()
+     */
+    public function testCloneCorrectTimezone()
+    {
+        $tz_utc = new \DateTimeZone('UTC');
+        // Hardcoded timezone, because times of change
+        // are probably tied to the timezone.
+        $tz_local = new \DateTimeZone('Europe/Copenhagen');
+
+        $timestamps = [
+            'winter' => [
+                '2018-12-31 12:00:00' => 1,
+                '2019-01-01 00:00:00' => 1,
+                '2019-01-01 12:00:00' => 1,
+            ],
+            'winterToSummer' => [
+                '2019-03-30 12:00:00' => 1,
+                '2019-03-31 01:59:59' => 1,
+                // Europe/Copenhagen: 2019-03-31 02:00:00.
+                '2019-03-31 03:00:00' => 2,
+                '2019-03-31 12:00:00' => 2,
+            ],
+            'summer' => [
+                '2019-06-30 12:00:00' => 2,
+                '2019-07-01 00:00:00' => 2,
+                '2019-07-01 12:00:00' => 2,
+            ],
+            'summerToWinter' => [
+                '2019-10-26 12:00:00' => 2,
+                '2019-10-27 01:59:59' => 2,
+                // Europe/Copenhagen: 2019-10-27 03:00:00.
+                '2019-10-27 02:00:00' => 1,
+                '2019-10-27 12:00:00' => 1,
+            ],
+        ];
+
+        $classes = [
+            Time::class,
+            TimeLocal::class,
+            TimeImmutable::class
+        ];
+
+        foreach ($classes as $class) {
+            foreach ($timestamps as $point => $list) {
+                $index = -1;
+                foreach ($list as $timestamp => $diff) {
+                    ++$index;
+                    $utc = new Time($timestamp, $tz_utc);
+                    $local = (clone $utc)->setTimezone($tz_local);
+
+                    // Something thought that it was in local timezone.
+                    /** @var Time $wrong */
+                    $wrong = new $class($timestamp, $tz_local);
+                    // But we know better.
+                    $moved = $wrong->cloneCorrectTimezone($tz_utc, $tz_local);
+
+                    static::assertSame(
+                        $diff * -3600,
+                        $wrong->getTimestamp() - $utc->getTimestamp(),
+                        '(' . $class . ')' . $point . '[' . $timestamp . '] wrong vs. UTC'
+                    );
+                    static::assertSame(
+                        $diff * -3600,
+                        $wrong->getTimestamp() - $local->getTimestamp(),
+                        '(' . $class . ')' . $point . '[' . $timestamp . '] wrong vs. local'
+                    );
+
+                    static::assertSame(
+                        0,
+                        $moved->getTimestamp() - $utc->getTimestamp(),
+                        '(' . $class . ')' . $point . '[' . $timestamp . '] moved vs. UTC'
+                    );
+                    static::assertSame(
+                        0,
+                        $moved->getTimestamp() - $local->getTimestamp(),
+                        '(' . $class . ')' . $point . '[' . $timestamp . '] moved vs. local'
+                    );
+                }
+            }
+        }
+    }
+
 
     /**
      * @see \SimpleComplex\Time\Time::diffTime()

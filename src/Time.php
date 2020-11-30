@@ -800,6 +800,52 @@ class Time extends \DateTime implements \JsonSerializable
         return $this;
     }
 
+    /**
+     * Create new object with corrected timezone.
+     *
+     * Move timezone of Time wrongly created/determined as in timezone $toZone
+     * when actually was in timezone $fromZone.
+     * Example: a datetime retrieved from database was thought to be in local
+     * timezone, but was actually in UTC.
+     *
+     * @param \DateTimeZone $fromZone
+     * @param \DateTimeZone|null $toZone
+     *      Default: local timezone.
+     *
+     * @return static
+     *      New instance, same class as $this.
+     *
+     * @throws \Exception
+     *      Propagated; \DateTime constructor, \DateTime::setTimezone().
+     */
+    public function cloneCorrectTimezone(\DateTimeZone $fromZone, ?\DateTimeZone $toZone = null) : \DateTime /*self invariant - PHP8:static*/
+    {
+        // Return type has to be \DateTime because last method used
+        // is setTimezone().
+
+        if ($this->frozen) {
+            throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
+        }
+        $class = get_class($this);
+        /**
+         * Create instance using original ($fromZone) timezone
+         * and then set timezone (internally changing it's time parts).
+         *
+         * And use separate algo for other classes than Time.
+         *
+         * @see TimeLocal::cloneCorrectTimezone()
+         *      Would err on setting timezone to $fromZone.
+         * @see TimeImmutable::setTimezone()
+         *      Would do one more construction than necessary.
+         */
+        $moved = (new Time($this->format('Y-m-d H:i:s.u'), $fromZone))
+            ->setTimezone($toZone ?? static::$timezoneLocal);
+        if ($class == Time::class) {
+            return $moved;
+        }
+        return new static($moved->format('Y-m-d H:i:s.u'), $toZone);
+    }
+
 
     // Diff.------------------------------------------------
 

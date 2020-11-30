@@ -113,4 +113,24 @@ class TimeLocal extends Time
             . '] vs. arg $timezone name[' . $tz_name . '].'
         );
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @throws \BadMethodCallException
+     *      If arg $toZone isn't local timezone.
+     */
+    public function cloneCorrectTimezone(\DateTimeZone $fromZone, ?\DateTimeZone $toZone = null) : \DateTime
+    {
+        if ($toZone) {
+            $tz_name = $toZone->getName();
+            if ($tz_name != $this->timezoneName) {
+                throw new \BadMethodCallException(
+                    'Cloning ' . static::class . ' instance to non-local timezone is illegal, this timezoneName['
+                    . $this->timezoneName . '] vs. arg $toZone name[' . $tz_name . '].'
+                );
+            }
+        }
+        return parent::cloneCorrectTimezone($fromZone, $toZone);
+    }
 }
