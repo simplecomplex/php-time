@@ -4,7 +4,7 @@ All notable changes to **simplecomplex/time** will be documented in this file,
 using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
 
-## [Unreleased]
+## [1.1.0] - 2020-12-01
 
 ### Added
 * Time::cloneCorrectTimezone() to handle timezone cockups.
