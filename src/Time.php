@@ -1664,6 +1664,30 @@ class Time extends \DateTime implements \JsonSerializable
     }
 
     /**
+     * Dump instance vars and other relevant information to array.
+     *
+     * Makes dumpable by other means than print_r/var_dump.
+     *
+     * Native \DateTime is (again) very weird when it comes to print_r/var_dump.
+     * It's instance property (str) date is only accessible (readable) after
+     * the object has been print_r/var_dump'ed.
+     * @see https://bugs.php.net/bug.php?id=49382
+     * @see https://bugs.php.net/bug.php?id=75232
+     * @see https://bugs.php.net/bug.php?id=69925
+     *
+     * @return array
+     */
+    public function __debugInfo() : array
+    {
+        return [
+                'time' => $this->format('Y-m-d H:i:s.u'),
+            ] + get_object_vars($this);
+    }
+
+
+    // Helpers.---------------------------------------------
+
+    /**
      * Get subject class name or (non-object) type.
      *
      * Counter to native gettype() this method returns:

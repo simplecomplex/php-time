@@ -8,6 +8,7 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
 ### Added
 * Time::cloneCorrectTimezone() to handle timezone cockups.
+* Time::__debugInfo, to make dumpable by other means than print_r/var_dump.
 
 
 ## [1.0.1] - 2020-08-07
