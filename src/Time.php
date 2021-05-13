@@ -14,7 +14,7 @@ namespace SimpleComplex\Time;
  *
  * Features:
  * - enhanced timezone awareness
- * - diff - diffTime() - works correctly with non-UTC timezone
+ * - diff works correctly with non-UTC timezone
  * - safer formatting and modifying
  * - is stringable, to ISO-8601
  * - JSON serializes to string ISO-8601 with timezone marker

@@ -485,10 +485,10 @@ class TimeTest extends TestCase
         /**
          * Throws exception because the two dates don't have the same timezone,
          * and falsy arg $allowUnEqualTimezones.
-         * @see \SimpleComplex\Time\Time::diffTime()
+         * @see \SimpleComplex\Time\Time::diffExact()
          */
         $this->expectException(\RuntimeException::class);
-        static::assertSame(0, $first->diffTime($last)->totalMonths);
+        static::assertSame(0, $first->diffExact($last)->totalMonths);
     }
 
     /**
