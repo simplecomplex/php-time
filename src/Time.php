@@ -2,7 +2,7 @@
 /**
  * SimpleComplex PHP Time
  * @link      https://github.com/simplecomplex/php-time
- * @copyright Copyright (c) 2017-2020 Jacob Friis Mathiasen
+ * @copyright Copyright (c) 2017-2021 Jacob Friis Mathiasen
  * @license   https://github.com/simplecomplex/php-time/blob/master/LICENSE (MIT License)
  */
 declare(strict_types=1);
@@ -116,6 +116,21 @@ class Time extends \DateTime implements \JsonSerializable
      *      Supported values: none|milli|micro.
      */
     public const JSON_SUBSECOND_PRECISION = 'milli';
+
+    /**
+     * List of timezones which have no daylight saving time.
+     *
+     * Keys are timezone names, values could really be anything.
+     * Allows a child class to extend parent's list by doing
+     * const TIMEZONE_DST_NONE = [
+     *   'Some/Timezone' => true,
+     * ] + ParentClass::TIMEZONE_DST_NONE;
+     *
+     * @var bool[]
+     */
+    public const TIMEZONE_DST_NONE = [
+        'UTC' => true,
+    ];
 
     /**
      * @see Time::setSubSecondPrecision()
@@ -850,7 +865,7 @@ class Time extends \DateTime implements \JsonSerializable
     // Diff.------------------------------------------------
 
     /**
-     * Get difference as a mock DateInterval with signed total properties.
+     * Exact difference as a mock DateInterval with signed total properties.
      *
      * Works correctly with non-UTC timezones.
      *
@@ -872,14 +887,14 @@ class Time extends \DateTime implements \JsonSerializable
      *      Supposedly equal to or later than this time,
      *      otherwise totals will be negative.
      *
-     * @return TimeInterval
+     * @return TimeIntervalUnified|TimeIntervalExact
      *
      * @throws \RuntimeException
      *      This and arg $dateTime's timezones aren't the same.
      * @throws \Exception
      *      Propagated; \DateTime constructor.
      */
-    public function diffTime(\DateTimeInterface $dateTime) : TimeInterval
+    public function diffExact(\DateTimeInterface $dateTime) : TimeInterval
     {
         /**
          * Overriding diff() is not possible (or at least risky or ugly),
@@ -903,13 +918,13 @@ class Time extends \DateTime implements \JsonSerializable
             );
         }
 
-        if ($this->timezoneName == 'UTC') {
-            return new TimeInterval($this->diff($dateTime));
+        if (isset(static::TIMEZONE_DST_NONE[$this->timezoneName])) {
+            return new TimeIntervalUnified($this->diff($dateTime));
         }
 
         $tz_utc = new \DateTimeZone('UTC');
         $subject_iso = $dateTime->format('Y-m-d H:i:s.u');
-        return new TimeInterval(
+        return new TimeIntervalExact(
             // Baseline and subject moved to UTC;
             // relative years, months, days will be off.
             ($this->cloneToMutable())->setTimezone($tz_utc)->diff(
@@ -924,10 +939,66 @@ class Time extends \DateTime implements \JsonSerializable
     }
 
     /**
-     * Convenience method returning native \DateInterval.
+     * Habitual difference as a mock DateInterval with signed total properties.
      *
-     * The \DateInterval is correct timezone-wise, and has correct
-     * $f and $invert attributes. It's $days is false (no do fixing that).
+     * In everyday business you often don't want the difference between a date
+     * outside daylight saving time (DST) and a date inside DST to be off
+     * by the DST offset.
+     * That offset can be particularly nasty if either of the dates is at
+     * or close to midnight, because then the _days_ difference may get 1 off.
+     *
+     * @param \DateTimeInterface $dateTime
+     *      Supposedly equal to or later than this time,
+     *      otherwise totals will be negative.
+     *
+     * @return TimeIntervalUnified|TimeIntervalHabitual
+     *
+     * @throws \RuntimeException
+     *      This and arg $dateTime's timezones aren't the same.
+     * @throws \Exception
+     *      Propagated; \DateTime constructor.
+     */
+    public function diffHabitual(\DateTimeInterface $dateTime) : TimeInterval
+    {
+        $subject_tz_name = $dateTime->getTimezone()->getName();
+        if ($subject_tz_name != $this->timezoneName) {
+            throw new \RuntimeException(
+                'DateTimes with unequal timezones are not comparable, saw this timezone[' . $this->timezoneName
+                . '] and arg dateTime timezone[' . $subject_tz_name . '].'
+            );
+        }
+
+        if (isset(static::TIMEZONE_DST_NONE[$this->timezoneName])) {
+            return new TimeIntervalUnified($this->diff($dateTime));
+        }
+
+        $tz_utc = new \DateTimeZone('UTC');
+        $subject_iso = $dateTime->format('Y-m-d H:i:s.u');
+        return new TimeIntervalHabitual(
+            // Baseline and subject time parts verbatim, but in other (UTC)
+            // timezone, and we deliberately suppress (relative's) offset.
+            (new \DateTime($this->format('Y-m-d H:i:s.u'), $tz_utc))->diff(
+                new \DateTime($subject_iso, $tz_utc)
+            )
+        );
+    }
+
+    /**
+     * @deprecated Use diffExact() instead.
+     *
+     * @param \DateTimeInterface $dateTime
+     * @return TimeInterval
+     *
+     * @throws \Exception
+     *      Propagated.
+     */
+    public function diffTime(\DateTimeInterface $dateTime) : TimeInterval
+    {
+        return $this->diffExact($dateTime);
+    }
+
+    /**
+     * @deprecated Use diffExact|diffHabitual()->toDateInterval() instead.
      *
      * @see TimeInterval::toDateInterval()
      *
@@ -940,17 +1011,17 @@ class Time extends \DateTime implements \JsonSerializable
      */
     public function diffDate(\DateTimeInterface $dateTime) : \DateInterval
     {
-        return $this->diffTime($dateTime)->toDateInterval();
+        return $this->diffExact($dateTime)->toDateInterval();
     }
 
 
     /**
-     * @deprecated Use diffTime() instead.
+     * @deprecated Use diffExact() instead.
      *
      * @param \DateTimeInterface $dateTime
      * @return TimeInterval
      *
-     * @throws \Throwable
+     * @throws \Exception
      *      Propagated.
      */
     public function diffConstant(\DateTimeInterface $dateTime) : TimeInterval
@@ -958,10 +1029,10 @@ class Time extends \DateTime implements \JsonSerializable
         // Not @trigger_error() because important.
         trigger_error(
             __CLASS__ . '::' . __METHOD__
-            . ' method is deprecated and will be removed soon, use diffTime instead.',
+            . ' method is deprecated and will be removed soon, use diffExact instead.',
             E_USER_DEPRECATED
         );
-        return $this->diffTime($dateTime);
+        return $this->diffExact($dateTime);
     }
 
 

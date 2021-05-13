@@ -7,10 +7,11 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 ## [Unreleased]
 
 ### Added
-
+- 'Habitual' diff regime, which ignores daylight saving time (DST).
 
 ### Changed
-
+- Deprecated Time::diffTime(), TimeSpan::timeInterval(), TimeSpan::diffTimeSpan().
+- Surely phpunit ^9 will work too.
 
 ### Fixed
 - TimeImmutable::modifyDate() could only set months to zero.

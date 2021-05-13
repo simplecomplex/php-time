@@ -2,7 +2,7 @@
 /**
  * SimpleComplex PHP Time
  * @link      https://github.com/simplecomplex/php-time
- * @copyright Copyright (c) 2017-2020 Jacob Friis Mathiasen
+ * @copyright Copyright (c) 2017-2021 Jacob Friis Mathiasen
  * @license   https://github.com/simplecomplex/php-time/blob/master/LICENSE (MIT License)
  */
 declare(strict_types=1);
@@ -127,20 +127,46 @@ class TimeSpan
     }
 
     /**
-     * Difference between this from and this to.
+     * Exact difference between this from and this to.
+     *
+     * @return TimeIntervalUnified|TimeIntervalExact
+     *
+     * @throws \Throwable
+     *      Propagated.
+     */
+    public function timeIntervalExact() : TimeInterval
+    {
+        return $this->from->diffExact($this->to);
+    }
+
+    /**
+     * Habitual difference between this from and this to.
+     *
+     * @return TimeIntervalUnified|TimeIntervalHabitual
+     *
+     * @throws \Throwable
+     *      Propagated.
+     */
+    public function timeIntervalHabitual() : TimeInterval
+    {
+        return $this->from->diffHabitual($this->to);
+    }
+
+    /**
+     * @deprecated Use timeIntervalExact() instead.
      *
      * @return TimeInterval
      *
-     * @throws \Exception
+     * @throws \Throwable
      *      Propagated.
      */
     public function timeInterval() : TimeInterval
     {
-        return $this->from->diffTime($this->to);
+        return $this->timeIntervalExact();
     }
 
     /**
-     * Difference between this to and arg $timeSpan from,
+     * Exact difference between this to and arg $timeSpan from,
      * or this from and arg $timeSpan to (negative).
      *
      * @param TimeSpan $timeSpan
@@ -150,10 +176,49 @@ class TimeSpan
      *
      * @throws \InvalidArgumentException
      *      Arg $timeSpan is in other timezone than this.
-     * @throws \Exception
+     * @throws \Throwable
      *      Propagated.
      */
-    public function diffTimeSpan(TimeSpan $timeSpan) /*: PHP8:TimeInterval|int*/
+    public function diffExact(TimeSpan $timeSpan) /*: PHP8:TimeInterval|int*/
+    {
+        return $this->diffAny($timeSpan);
+    }
+
+    /**
+     * Habitual difference between this to and arg $timeSpan from,
+     * or this from and arg $timeSpan to (negative).
+     *
+     * @param TimeSpan $timeSpan
+     *
+     * @return TimeInterval|int
+     *      Int: Arg $timeSpan overlaps this.
+     *
+     * @throws \InvalidArgumentException
+     *      Arg $timeSpan is in other timezone than this.
+     * @throws \Throwable
+     *      Propagated.
+     */
+    public function diffHabitual(TimeSpan $timeSpan) /*: PHP8:TimeInterval|int*/
+    {
+        return $this->diffAny($timeSpan, true);
+    }
+
+    /**
+     * Exact or habitual difference between this to and arg $timeSpan from,
+     * or this from and arg $timeSpan to (negative).
+     *
+     * @param TimeSpan $timeSpan
+     * @param bool $habitual
+     *
+     * @return TimeInterval|int
+     *      Int: Arg $timeSpan overlaps this.
+     *
+     * @throws \InvalidArgumentException
+     *      Arg $timeSpan is in other timezone than this.
+     * @throws \Throwable
+     *      Propagated.
+     */
+    protected function diffAny(TimeSpan $timeSpan, bool $habitual = false) /*: PHP8:TimeInterval|int*/
     {
         if ($timeSpan->timezoneName != $this->timezoneName) {
             throw new \InvalidArgumentException(
@@ -168,10 +233,26 @@ class TimeSpan
         }
 
         if ($timeSpan->fromEpochMicro > $this->toEpochMicro) {
-            return $this->to->diffTime($timeSpan->from);
+            return !$habitual ? $this->to->diffExact($timeSpan->from) : $this->to->diffHabitual($timeSpan->from);
         }
         // Negative.
-        return $this->from->diffTime($timeSpan->to);
+        return !$habitual ? $this->from->diffExact($timeSpan->to) : $this->from->diffHabitual($timeSpan->to);
+    }
+
+    /**
+     * @deprecated Use diffExact() instead.
+     *
+     * @param TimeSpan $timeSpan
+     *
+     * @return TimeInterval|int
+     *      Int: Arg $timeSpan overlaps this.
+
+     * @throws \Throwable
+     *      Propagated.
+     */
+    public function diffTimeSpan(TimeSpan $timeSpan) /*: PHP8:TimeInterval|int*/
+    {
+        return $this->diffAny($timeSpan);
     }
 
     /**

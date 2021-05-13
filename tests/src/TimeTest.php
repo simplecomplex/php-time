@@ -118,6 +118,8 @@ class TimeTest extends TestCase
 
     /**
      * @see \SimpleComplex\Time\Time::modifyDate()
+     *
+     * @throws \Exception
      */
     public function testModifyDate()
     {
@@ -280,6 +282,8 @@ class TimeTest extends TestCase
 
     /**
      * @see \SimpleComplex\Time\Time::modifyTime()
+     *
+     * @throws \Exception
      */
     public function testModifyTime()
     {
@@ -291,6 +295,8 @@ class TimeTest extends TestCase
 
     /**
      * @see \SimpleComplex\Time\Time::cloneCorrectTimezone()
+     *
+     * @throws \Exception
      */
     public function testCloneCorrectTimezone()
     {
@@ -374,7 +380,10 @@ class TimeTest extends TestCase
 
 
     /**
-     * @see \SimpleComplex\Time\Time::diffTime()
+     * @see \SimpleComplex\Time\Time::diffExact()
+     * @see \SimpleComplex\Time\Time::diffHabitual()
+     *
+     * @throws \Exception
      */
     public function testDiffTime()
     {
@@ -392,7 +401,7 @@ class TimeTest extends TestCase
 //        static::assertSame(2, $interval_mutable->h, '');
 //
 //        // Our interval class properties are read-only.
-//        $interval_constant = $first->diffTime($last);
+//        $interval_constant = $first->diffExact($last);
 //        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($interval_constant)->log();
 //        static::assertSame(0, $interval_constant->h, '');
 //        $this->expectException(\RuntimeException::class);
@@ -400,7 +409,7 @@ class TimeTest extends TestCase
 //        $interval_constant->{'h'} = 2;
 
         /**
-         * \SimpleComplex\Time\Time::diffTime()
+         * \SimpleComplex\Time\Time::diffExact()
          *
          * Fixes that native diff()|\DateInterval calculation doesn't work correctly
          * with other timezone than UTC.
@@ -409,28 +418,61 @@ class TimeTest extends TestCase
 
         $tz_default = date_default_timezone_get();
 
-        date_default_timezone_set('UTC');
-        $first = (new Time('2019-02-01'))->setToDateStart();
-        $last = (new Time('2019-03-01'))->setToDateStart();
-        $diff = $first->diffTime($last);
-        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log();
-        static::assertSame(1, $diff->totalMonths);
+        // Summertime: before, across shift, after shift.
+        $scenarios = [
+            'before' => ['2019-02-01', '2019-03-01'],
+            'across' => ['2019-03-01', '2019-04-01'],
+            'after' => ['2019-04-01', '2019-05-01'],
+        ];
 
-        // Native diff() gets it wrong here, because non-UTC.
-        date_default_timezone_set(BootstrapTest::TIMEZONE);
-        $first = (new Time('2019-02-01'))->setToDateStart();
-        $last = (new Time('2019-03-01'))->setToDateStart();
-        $diff = $first->toDateTime()->diff($last->toDateTime());
-        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log();
-        static::assertSame(0, $diff->m);
+        foreach ($scenarios as $name => $dates) {
+            // UTC.
+            date_default_timezone_set('UTC');
+            $first = (new Time($dates[0]))->setToDateStart();
+            $last = (new Time($dates[1]))->setToDateStart();
+            $exact = $first->diffExact($last);
+            static::assertInstanceOf(\SimpleComplex\Time\TimeIntervalUnified::class, $exact);
+            $habitual = $first->diffHabitual($last);
+            static::assertInstanceOf(\SimpleComplex\Time\TimeIntervalUnified::class, $habitual);
+            //\SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log();
+            static::assertSame(1, $exact->totalMonths, $name);
+            static::assertSame(1, $habitual->totalMonths, $name);
+            $days = $first->monthLengthDays();
+            static::assertSame($days, $exact->totalDays, $name);
+            static::assertSame($days, $habitual->totalDays, $name);
 
-        // This would fail if that bug wasn't handled.
-        date_default_timezone_set(BootstrapTest::TIMEZONE);
-        $first = (new Time('2019-02-01'))->setToDateStart();
-        $last = (new Time('2019-03-01'))->setToDateStart();
-        $diff = $first->diffTime($last);
-        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log();
-        static::assertSame(1, $diff->totalMonths);
+            static::assertSame(0, $exact->relativeHours, $name);
+            static::assertSame(0, $habitual->relativeHours, $name);
+
+            // Native diff() gets it wrong here, because non-UTC.
+            date_default_timezone_set(BootstrapTest::TIMEZONE);
+            $first = (new Time($dates[0]))->setToDateStart();
+            $last = (new Time($dates[1]))->setToDateStart();
+            $diff = $first->toDateTime()->diff($last->toDateTime());
+            //\SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log();
+            $months = $name == 'across' ? 1 : 0;
+            static::assertSame($months, $diff->m, $name);
+
+            // Local.
+            date_default_timezone_set(BootstrapTest::TIMEZONE);
+            $first = (new Time($dates[0]))->setToDateStart();
+            $last = (new Time($dates[1]))->setToDateStart();
+            $exact = $first->diffExact($last);
+            static::assertNotInstanceOf(\SimpleComplex\Time\TimeIntervalUnified::class, $exact);
+            static::assertInstanceOf(\SimpleComplex\Time\TimeIntervalExact::class, $exact);
+            $habitual = $first->diffHabitual($last);
+            static::assertNotInstanceOf(\SimpleComplex\Time\TimeIntervalUnified::class, $habitual);
+            static::assertInstanceOf(\SimpleComplex\Time\TimeIntervalHabitual::class, $habitual);
+            //\SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log();
+            static::assertSame(1, $exact->totalMonths, $name);
+            static::assertSame(1, $habitual->totalMonths, $name);
+            $days = $first->monthLengthDays();
+            static::assertSame($days - ($name == 'across' ? 1 : 0), $exact->totalDays, $name);
+            static::assertSame($days, $habitual->totalDays, $name);
+
+            static::assertSame($name == 'across' ? 23 : 0, $exact->relativeHours, $name);
+            static::assertSame(0, $habitual->relativeHours, $name);
+        }
 
         // Reset, for posterity.
         date_default_timezone_set($tz_default);
@@ -449,6 +491,9 @@ class TimeTest extends TestCase
         static::assertSame(0, $first->diffTime($last)->totalMonths);
     }
 
+    /**
+     * @throws \Exception
+     */
     public static function testResolve()
     {
         date_default_timezone_set(BootstrapTest::TIMEZONE);
@@ -527,7 +572,9 @@ class TimeTest extends TestCase
         static::assertTrue(abs(1577880000900000 - $ceil->epochMicro) < 10, 'ceilable microseconds');
     }
 
-
+    /**
+     * @throws \Exception
+     */
     public function testImmutable()
     {
         date_default_timezone_set(BootstrapTest::TIMEZONE);
@@ -538,9 +585,12 @@ class TimeTest extends TestCase
         $mutated = $immutable->modifyDate(1);
         static::assertInstanceOf(TimeImmutable::class, $mutated);
 
-        static::assertSame(12, $immutable->diffTime($mutated)->totalMonths);
+        static::assertSame(12, $immutable->diffExact($mutated)->totalMonths);
     }
 
+    /**
+     * @throws \Exception
+     */
     public function testSubSecondPrecision()
     {
         date_default_timezone_set(BootstrapTest::TIMEZONE);
@@ -567,7 +617,7 @@ class TimeTest extends TestCase
      * Reason: the latter date is within +1 hour summer time, and a summer time
      * offset doesn't make time 'longer'.
      *
-     * @throws \Throwable
+     * @throws \Exception
      */
     public function testTimeIntervalUTCVersusLocalMidday()
     {
@@ -589,9 +639,9 @@ class TimeTest extends TestCase
                 $last = new Time('2020-06-15 12:37:59.555555');
 
                 if ($sg == 1) {
-                    $diff = $first->diffTime($last);
+                    $diff = $first->diffExact($last);
                 } else {
-                    $diff = $last->diffTime($first);
+                    $diff = $last->diffExact($first);
                 }
                 //\SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log();
                 /*
@@ -682,9 +732,9 @@ class TimeTest extends TestCase
                 $last = new Time('2020-06-15 00:00:00.000000');
 
                 if ($sg == 1) {
-                    $diff = $first->diffTime($last);
+                    $diff = $first->diffExact($last);
                 } else {
-                    $diff = $last->diffTime($first);
+                    $diff = $last->diffExact($first);
                 }
                 //\SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log();
                 /*
