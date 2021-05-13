@@ -125,9 +125,9 @@ class TimeImmutable extends Time
     /**
      * {@inheritDoc}
      */
-    public function modify($modify) : \DateTime /*self invariant - PHP8:static*/
+    public function modify($modifier) : \DateTime /*self invariant - PHP8:static*/
     {
-        $t = $this->cloneToMutable()->modify($modify);
+        $t = $this->cloneToMutable()->modify($modifier);
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
 
@@ -148,27 +148,27 @@ class TimeImmutable extends Time
     /**
      * {@inheritDoc}
      */
-    public function setISODate($year, $week, $day = 1) : \DateTime /*self invariant - PHP8:static*/
+    public function setISODate($year, $week, $dayOfWeek = 1) : \DateTime /*self invariant - PHP8:static*/
     {
-        $t = $this->cloneToMutable()->setIsoDate($year, $week, $day);
+        $t = $this->cloneToMutable()->setIsoDate($year, $week, $dayOfWeek);
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
 
     /**
      * {@inheritDoc}
      */
-    public function setTime($hour, $minute, $second = 0, $microseconds = 0) : \DateTime /*self invariant - PHP8:static*/
+    public function setTime($hour, $minute, $second = 0, $microsecond = 0) : \DateTime /*self invariant - PHP8:static*/
     {
-        $t = $this->cloneToMutable()->setTime($hour, $minute, $second, $microseconds);
+        $t = $this->cloneToMutable()->setTime($hour, $minute, $second, $microsecond);
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
 
     /**
      * {@inheritDoc}
      */
-    public function setTimestamp($unixtimestamp) : \DateTime /*self invariant - PHP8:static*/
+    public function setTimestamp($timestamp) : \DateTime /*self invariant - PHP8:static*/
     {
-        $t = $this->cloneToMutable()->setTimestamp($unixtimestamp);
+        $t = $this->cloneToMutable()->setTimestamp($timestamp);
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
 
@@ -345,7 +345,7 @@ class TimeImmutable extends Time
      */
     public function modifyDate(int $years, int $months = 0, int $days = 0) : Time /*PHP8:static*/
     {
-        $t = $this->cloneToMutable()->modifyDate($years, $months = 0, $days);
+        $t = $this->cloneToMutable()->modifyDate($years, $months, $days);
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
 
@@ -354,7 +354,7 @@ class TimeImmutable extends Time
      */
     public function modifyTime(int $hours, int $minutes = 0, int $seconds = 0, int $microseconds = 0) : Time /*PHP8:static*/
     {
-        $t = $this->cloneToMutable()->modifyTime($hours, $minutes = 0, $seconds, $microseconds);
+        $t = $this->cloneToMutable()->modifyTime($hours, $minutes, $seconds, $microseconds);
         return new static($t->format('Y-m-d H:i:s.u'), $t->getTimezone());
     }
 }

@@ -293,7 +293,7 @@ class Time extends \DateTime implements \JsonSerializable
      */
 
     /**
-     * @param string $modify
+     * @param string $modifier
      *
      * @return static
      *
@@ -302,12 +302,12 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::modify().
      */
-    public function modify($modify) : \DateTime /*self invariant - PHP8:static*/
+    public function modify($modifier) : \DateTime /*self invariant - PHP8:static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
         }
-        return parent::modify($modify);
+        return parent::modify($modifier);
     }
 
     /**
@@ -338,7 +338,7 @@ class Time extends \DateTime implements \JsonSerializable
     /**
      * @param int $year
      * @param int $week
-     * @param int $day
+     * @param int $dayOfWeek
      *
      * @return static
      *
@@ -347,19 +347,19 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::setIsoDate().
      */
-    public function setISODate($year, $week, $day = 1) : \DateTime /*self invariant - PHP8:static*/
+    public function setISODate($year, $week, $dayOfWeek = 1) : \DateTime /*self invariant - PHP8:static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
         }
-        return parent::setIsoDate($year, $week, $day);
+        return parent::setIsoDate($year, $week, $dayOfWeek);
     }
 
     /**
      * @param int $hour
      * @param int $minute
      * @param int $second
-     * @param int $microseconds
+     * @param int $microsecond
      *
      * @return static|false
      *      False: Parent \DateTime method failure.
@@ -369,20 +369,20 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::setTime()
      */
-    public function setTime($hour, $minute, $second = 0, $microseconds = 0) : \DateTime /*self invariant - PHP8:static*/
+    public function setTime($hour, $minute, $second = 0, $microsecond = 0) : \DateTime /*self invariant - PHP8:static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
         }
-        // PHP 7.0 support for arg $microseconds, though ignored when PHP <7.1.
+        // PHP 7.0 support for arg $microsecond, though ignored when PHP <7.1.
         //if (PHP_MAJOR_VERSION == 7 && !PHP_MINOR_VERSION) {
         //    return parent::setTime($hour, $minute, $second);
         //}
-        return parent::setTime($hour, $minute, $second, $microseconds);
+        return parent::setTime($hour, $minute, $second, $microsecond);
     }
 
     /**
-     * @param int $unixtimestamp
+     * @param int $timestamp
      *
      * @return static
      *
@@ -391,12 +391,12 @@ class Time extends \DateTime implements \JsonSerializable
      * @throws \Exception
      *      Propagated; \DateTime::setTimestamp().
      */
-    public function setTimestamp($unixtimestamp) : \DateTime /*self invariant - PHP8:static*/
+    public function setTimestamp($timestamp) : \DateTime /*self invariant - PHP8:static*/
     {
         if ($this->frozen) {
             throw new \RuntimeException(get_class($this) . ' is read-only, frozen.');
         }
-        return parent::setTimestamp($unixtimestamp);
+        return parent::setTimestamp($timestamp);
     }
 
     /**
