@@ -382,8 +382,8 @@ class TimeTest extends TestCase
     /**
      * @throws \Exception
      *
-     * @see \SimpleComplex\Time\Time::diffActual()
-     * @see \SimpleComplex\Time\Time::diffHabitual()
+     * @see \SimpleComplex\Time\Time::diffTime()
+     * @see \SimpleComplex\Time\Time::diffDstIgnorant()
      */
     public function testDiffTime()
     {
@@ -401,7 +401,7 @@ class TimeTest extends TestCase
 //        static::assertSame(2, $interval_mutable->h, '');
 //
 //        // Our interval class properties are read-only.
-//        $interval_constant = $first->diffActual($last);
+//        $interval_constant = $first->diffTime($last);
 //        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($interval_constant)->log();
 //        static::assertSame(0, $interval_constant->h, '');
 //        $this->expectException(\RuntimeException::class);
@@ -409,7 +409,7 @@ class TimeTest extends TestCase
 //        $interval_constant->{'h'} = 2;
 
         /**
-         * \SimpleComplex\Time\Time::diffActual()
+         * \SimpleComplex\Time\Time::diffTime()
          *
          * Fixes that native diff()|\DateInterval calculation doesn't work correctly
          * with other timezone than UTC.
@@ -430,19 +430,19 @@ class TimeTest extends TestCase
             date_default_timezone_set('UTC');
             $first = (new Time($dates[0]))->setToDateStart();
             $last = (new Time($dates[1]))->setToDateStart();
-            $actual = $first->diffActual($last);
+            $actual = $first->diffTime($last);
             static::assertInstanceOf(\SimpleComplex\Time\TimeIntervalUnified::class, $actual);
-            $habitual = $first->diffHabitual($last);
-            static::assertInstanceOf(\SimpleComplex\Time\TimeIntervalUnified::class, $habitual);
+            $dstIgnorant = $first->diffDstIgnorant($last);
+            static::assertInstanceOf(\SimpleComplex\Time\TimeIntervalUnified::class, $dstIgnorant);
             //\SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log();
             static::assertSame(1, $actual->totalMonths, $name);
-            static::assertSame(1, $habitual->totalMonths, $name);
+            static::assertSame(1, $dstIgnorant->totalMonths, $name);
             $days = $first->monthLengthDays();
             static::assertSame($days, $actual->totalDays, $name);
-            static::assertSame($days, $habitual->totalDays, $name);
+            static::assertSame($days, $dstIgnorant->totalDays, $name);
 
             static::assertSame(0, $actual->relativeHours, $name);
-            static::assertSame(0, $habitual->relativeHours, $name);
+            static::assertSame(0, $dstIgnorant->relativeHours, $name);
 
             // Native diff() gets it wrong here, because non-UTC.
             date_default_timezone_set(BootstrapTest::TIMEZONE);
@@ -457,21 +457,21 @@ class TimeTest extends TestCase
             date_default_timezone_set(BootstrapTest::TIMEZONE);
             $first = (new Time($dates[0]))->setToDateStart();
             $last = (new Time($dates[1]))->setToDateStart();
-            $actual = $first->diffActual($last);
+            $actual = $first->diffTime($last);
             static::assertNotInstanceOf(\SimpleComplex\Time\TimeIntervalUnified::class, $actual);
-            static::assertInstanceOf(\SimpleComplex\Time\TimeIntervalActual::class, $actual);
-            $habitual = $first->diffHabitual($last);
-            static::assertNotInstanceOf(\SimpleComplex\Time\TimeIntervalUnified::class, $habitual);
-            static::assertInstanceOf(\SimpleComplex\Time\TimeIntervalHabitual::class, $habitual);
+            static::assertInstanceOf(\SimpleComplex\Time\TimeInterval::class, $actual);
+            $dstIgnorant = $first->diffDstIgnorant($last);
+            static::assertNotInstanceOf(\SimpleComplex\Time\TimeIntervalUnified::class, $dstIgnorant);
+            static::assertInstanceOf(\SimpleComplex\Time\TimeIntervalDstIgnorant::class, $dstIgnorant);
             //\SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log();
             static::assertSame(1, $actual->totalMonths, $name);
-            static::assertSame(1, $habitual->totalMonths, $name);
+            static::assertSame(1, $dstIgnorant->totalMonths, $name);
             $days = $first->monthLengthDays();
             static::assertSame($days - ($name == 'across' ? 1 : 0), $actual->totalDays, $name);
-            static::assertSame($days, $habitual->totalDays, $name);
+            static::assertSame($days, $dstIgnorant->totalDays, $name);
 
             static::assertSame($name == 'across' ? 23 : 0, $actual->relativeHours, $name);
-            static::assertSame(0, $habitual->relativeHours, $name);
+            static::assertSame(0, $dstIgnorant->relativeHours, $name);
         }
 
         // Reset, for posterity.
@@ -485,10 +485,10 @@ class TimeTest extends TestCase
         /**
          * Throws exception because the two dates don't have the same timezone,
          * and falsy arg $allowUnEqualTimezones.
-         * @see \SimpleComplex\Time\Time::diffActual()
+         * @see \SimpleComplex\Time\Time::diffTime()
          */
         $this->expectException(\RuntimeException::class);
-        static::assertSame(0, $first->diffActual($last)->totalMonths);
+        static::assertSame(0, $first->diffTime($last)->totalMonths);
     }
 
     /**
@@ -585,7 +585,7 @@ class TimeTest extends TestCase
         $mutated = $immutable->modifyDate(1);
         static::assertInstanceOf(TimeImmutable::class, $mutated);
 
-        static::assertSame(12, $immutable->diffActual($mutated)->totalMonths);
+        static::assertSame(12, $immutable->diffTime($mutated)->totalMonths);
     }
 
     /**
@@ -639,9 +639,9 @@ class TimeTest extends TestCase
                 $last = new Time('2020-06-15 12:37:59.555555');
 
                 if ($sg == 1) {
-                    $diff = $first->diffActual($last);
+                    $diff = $first->diffTime($last);
                 } else {
-                    $diff = $last->diffActual($first);
+                    $diff = $last->diffTime($first);
                 }
                 //\SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log();
                 /*
@@ -732,9 +732,9 @@ class TimeTest extends TestCase
                 $last = new Time('2020-06-15 00:00:00.000000');
 
                 if ($sg == 1) {
-                    $diff = $first->diffActual($last);
+                    $diff = $first->diffTime($last);
                 } else {
-                    $diff = $last->diffActual($first);
+                    $diff = $last->diffTime($first);
                 }
                 //\SimpleComplex\Inspect\Inspect::getInstance()->variable($diff)->log();
                 /*

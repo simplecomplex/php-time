@@ -12,19 +12,23 @@ namespace SimpleComplex\Time;
 /**
  * Mock \DateInterval plus signed totalling properties.
  *
- * Works for non-UTC timezones - when instantiated by diffActual|diffHabitual().
+ * Works for non-UTC timezones - when instantiated by diffTime().
  * Native diff()+DateInterval doesn't get time parts right, when non-UTC
  * and the datetimes aren't both outside or within summer time.
  * @see https://bugs.php.net/bug.php?id=52480
  * @see Time::diffTime()
  *
+ * Reflects actual difference across daylight saving time shift.
+ * If the timezone's daylight saving time is 1 hour, then the difference
+ * between a winter midnight and a summer midnight is:
+ * - hours off by 1 or 23
+ * - days off by 1
  *
  * All properties are read-only.
  * Native \DateInterval's properties are writable, but with no effect:
  * - setting $d doesnt't update $days
  * - setting $days doesn't update $days (and no error)
  * Pretty weird design indeed.
- *
  *
  * All DateInterval methods inaccessible except for format().
  * @see \DateInterval::format()
@@ -62,7 +66,7 @@ namespace SimpleComplex\Time;
  *
  * @package SimpleComplex\Time
  */
-abstract class TimeInterval implements Interfaces\TimeInterval
+class TimeInterval
 {
     /**
      * Why not simply extend \DateInterval?

@@ -22,10 +22,10 @@ extends native \DateTime to fix shortcomings and defects, and provide more prope
 ### [TimeInterval](src/TimeInterval.php)
 has the same properties as native `\DateInterval` plus **signed relatives and totals**, and works with non-UTC timezones.
 
-#### Time::diffActual()
+#### Time::diffTime()
 returns interval with actual differences.
 
-#### Time::diffHabitual()
+#### Time::diffDstIgnorant()
 returns an interval which ignores daylight saving time shift.<br>
 In everyday business you often don't want the difference between a date _outside_ daylight saving time (DST)<br>
 and a date _inside_ DST to be off by the DST offset.<br>

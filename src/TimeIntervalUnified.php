@@ -15,9 +15,15 @@ namespace SimpleComplex\Time;
  * Only UTC datetimes are certain to qualify as subjects of such a difference.
  * PHP's \DateTimeZone offers no means of detecting if a timezone has DST.
  *
+ * Formally this class should really _not_ extend the 'DST ignorant' class,
+ * but instead implement a 'unified' interface which extends 'actual'
+ * and 'DST ignorant' interfaces.
+ * However, as long as there aren't more time-interval variants that would
+ * be overkill IMHO.
+ *
  * @package SimpleComplex\Time
  */
-class TimeIntervalUnified extends TimeInterval implements Interfaces\TimeIntervalUnified
+class TimeIntervalUnified extends TimeIntervalDstIgnorant
 {
 
 }

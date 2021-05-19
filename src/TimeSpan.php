@@ -129,40 +129,27 @@ class TimeSpan
     /**
      * Actual difference between this from and this to.
      *
-     * @return TimeIntervalUnified|TimeIntervalActual
-     *
-     * @throws \Throwable
-     *      Propagated.
-     */
-    public function timeIntervalActual() : TimeInterval
-    {
-        return $this->from->diffActual($this->to);
-    }
-
-    /**
-     * Habitual difference between this from and this to.
-     *
-     * @return TimeIntervalUnified|TimeIntervalHabitual
-     *
-     * @throws \Throwable
-     *      Propagated.
-     */
-    public function timeIntervalHabitual() : TimeInterval
-    {
-        return $this->from->diffHabitual($this->to);
-    }
-
-    /**
-     * @deprecated Use timeIntervalActual() instead.
-     *
-     * @return TimeInterval
+     * @return TimeIntervalUnified|TimeInterval
      *
      * @throws \Throwable
      *      Propagated.
      */
     public function timeInterval() : TimeInterval
     {
-        return $this->timeIntervalActual();
+        return $this->from->diffTime($this->to);
+    }
+
+    /**
+     * DST ignorant difference between this from and this to.
+     *
+     * @return TimeIntervalUnified|TimeIntervalDstIgnorant
+     *
+     * @throws \Throwable
+     *      Propagated.
+     */
+    public function timeIntervalDstIgnorant() : TimeInterval
+    {
+        return $this->from->diffDstIgnorant($this->to);
     }
 
     /**
@@ -179,18 +166,18 @@ class TimeSpan
      * @throws \Throwable
      *      Propagated.
      */
-    public function diffActual(TimeSpan $timeSpan) /*: PHP8:TimeInterval|int*/
+    public function diffTime(TimeSpan $timeSpan) /*: PHP8:TimeInterval|int*/
     {
         return $this->diffAny($timeSpan);
     }
 
     /**
-     * Habitual difference between this to and arg $timeSpan from,
+     * DST ignorant difference between this to and arg $timeSpan from,
      * or this from and arg $timeSpan to (negative).
      *
      * @param TimeSpan $timeSpan
      *
-     * @return TimeInterval|int
+     * @return TimeIntervalDstIgnorant|TimeInterval|int
      *      Int: Arg $timeSpan overlaps this.
      *
      * @throws \InvalidArgumentException
@@ -198,19 +185,19 @@ class TimeSpan
      * @throws \Throwable
      *      Propagated.
      */
-    public function diffHabitual(TimeSpan $timeSpan) /*: PHP8:TimeInterval|int*/
+    public function diffDstIgnorant(TimeSpan $timeSpan) /*: PHP8:TimeInterval|int*/
     {
         return $this->diffAny($timeSpan, true);
     }
 
     /**
-     * Actual or habitual difference between this to and arg $timeSpan from,
+     * Actual or DST ignorant difference between this to and arg $timeSpan from,
      * or this from and arg $timeSpan to (negative).
      *
      * @param TimeSpan $timeSpan
-     * @param bool $habitual
+     * @param bool $dstIgnorant
      *
-     * @return TimeInterval|int
+     * @return TimeIntervalDstIgnorant|TimeInterval|int
      *      Int: Arg $timeSpan overlaps this.
      *
      * @throws \InvalidArgumentException
@@ -218,7 +205,7 @@ class TimeSpan
      * @throws \Throwable
      *      Propagated.
      */
-    protected function diffAny(TimeSpan $timeSpan, bool $habitual = false) /*: PHP8:TimeInterval|int*/
+    protected function diffAny(TimeSpan $timeSpan, bool $dstIgnorant = false) /*: PHP8:TimeInterval|int*/
     {
         if ($timeSpan->timezoneName != $this->timezoneName) {
             throw new \InvalidArgumentException(
@@ -233,14 +220,14 @@ class TimeSpan
         }
 
         if ($timeSpan->fromEpochMicro > $this->toEpochMicro) {
-            return !$habitual ? $this->to->diffActual($timeSpan->from) : $this->to->diffHabitual($timeSpan->from);
+            return !$dstIgnorant ? $this->to->diffTime($timeSpan->from) : $this->to->diffDstIgnorant($timeSpan->from);
         }
         // Negative.
-        return !$habitual ? $this->from->diffActual($timeSpan->to) : $this->from->diffHabitual($timeSpan->to);
+        return !$dstIgnorant ? $this->from->diffTime($timeSpan->to) : $this->from->diffDstIgnorant($timeSpan->to);
     }
 
     /**
-     * @deprecated Use diffActual() instead.
+     * @deprecated Use diffTime() instead.
      *
      * @param TimeSpan $timeSpan
      *
@@ -249,6 +236,8 @@ class TimeSpan
 
      * @throws \Throwable
      *      Propagated.
+     *
+     * @see TimeSpan::diffTime()
      */
     public function diffTimeSpan(TimeSpan $timeSpan) /*: PHP8:TimeInterval|int*/
     {
