@@ -22,8 +22,8 @@ extends native \DateTime to fix shortcomings and defects, and provide more prope
 ### [TimeInterval](src/TimeInterval.php)
 has the same properties as native `\DateInterval` plus **signed relatives and totals**, and works with non-UTC timezones.
 
-#### Time::diffExact()
-returns interval with exact differences.
+#### Time::diffActual()
+returns interval with actual differences.
 
 #### Time::diffHabitual()
 returns an interval which ignores daylight saving time shift.<br>

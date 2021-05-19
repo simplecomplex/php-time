@@ -15,14 +15,14 @@ namespace SimpleComplex\Time\Interfaces;
  * Only UTC datetimes are certain to qualify as subjects of such a difference.
  * PHP's \DateTimeZone offers no means of detecting if a timezone has DST.
  *
- * Interface allowing class TimeIntervalUnified to be descendant of 'exact'
+ * Interface allowing class TimeIntervalUnified to be descendant of 'actual'
  * as well as 'habitual' artefacts.
  *
  * @see \SimpleComplex\Time\TimeIntervalUnified
  *
  * @package SimpleComplex\Time
  */
-interface TimeIntervalUnified extends TimeIntervalExact, TimeIntervalHabitual
+interface TimeIntervalUnified extends TimeIntervalActual, TimeIntervalHabitual
 {
 
 }

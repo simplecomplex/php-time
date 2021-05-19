@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace SimpleComplex\Time\Interfaces;
 
 /**
- * Exact difference across daylight saving time shift.
+ * Actual difference across daylight saving time shift.
  *
  * If the timezone's daylight saving time is 1 hour, then the difference
  * between a winter midnight and a summer midnight is:
@@ -23,7 +23,7 @@ namespace SimpleComplex\Time\Interfaces;
  *
  * @package SimpleComplex\Time
  */
-interface TimeIntervalExact extends TimeInterval
+interface TimeIntervalActual extends TimeInterval
 {
 
 }

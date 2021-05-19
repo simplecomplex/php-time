@@ -12,7 +12,7 @@ namespace SimpleComplex\Time;
 /**
  * Mock \DateInterval plus signed totalling properties.
  *
- * Works for non-UTC timezones - when instantiated by diffExact|diffHabitual().
+ * Works for non-UTC timezones - when instantiated by diffActual|diffHabitual().
  * Native diff()+DateInterval doesn't get time parts right, when non-UTC
  * and the datetimes aren't both outside or within summer time.
  * @see https://bugs.php.net/bug.php?id=52480

@@ -127,16 +127,16 @@ class TimeSpan
     }
 
     /**
-     * Exact difference between this from and this to.
+     * Actual difference between this from and this to.
      *
-     * @return TimeIntervalUnified|TimeIntervalExact
+     * @return TimeIntervalUnified|TimeIntervalActual
      *
      * @throws \Throwable
      *      Propagated.
      */
-    public function timeIntervalExact() : TimeInterval
+    public function timeIntervalActual() : TimeInterval
     {
-        return $this->from->diffExact($this->to);
+        return $this->from->diffActual($this->to);
     }
 
     /**
@@ -153,7 +153,7 @@ class TimeSpan
     }
 
     /**
-     * @deprecated Use timeIntervalExact() instead.
+     * @deprecated Use timeIntervalActual() instead.
      *
      * @return TimeInterval
      *
@@ -162,11 +162,11 @@ class TimeSpan
      */
     public function timeInterval() : TimeInterval
     {
-        return $this->timeIntervalExact();
+        return $this->timeIntervalActual();
     }
 
     /**
-     * Exact difference between this to and arg $timeSpan from,
+     * Actual difference between this to and arg $timeSpan from,
      * or this from and arg $timeSpan to (negative).
      *
      * @param TimeSpan $timeSpan
@@ -179,7 +179,7 @@ class TimeSpan
      * @throws \Throwable
      *      Propagated.
      */
-    public function diffExact(TimeSpan $timeSpan) /*: PHP8:TimeInterval|int*/
+    public function diffActual(TimeSpan $timeSpan) /*: PHP8:TimeInterval|int*/
     {
         return $this->diffAny($timeSpan);
     }
@@ -204,7 +204,7 @@ class TimeSpan
     }
 
     /**
-     * Exact or habitual difference between this to and arg $timeSpan from,
+     * Actual or habitual difference between this to and arg $timeSpan from,
      * or this from and arg $timeSpan to (negative).
      *
      * @param TimeSpan $timeSpan
@@ -233,14 +233,14 @@ class TimeSpan
         }
 
         if ($timeSpan->fromEpochMicro > $this->toEpochMicro) {
-            return !$habitual ? $this->to->diffExact($timeSpan->from) : $this->to->diffHabitual($timeSpan->from);
+            return !$habitual ? $this->to->diffActual($timeSpan->from) : $this->to->diffHabitual($timeSpan->from);
         }
         // Negative.
-        return !$habitual ? $this->from->diffExact($timeSpan->to) : $this->from->diffHabitual($timeSpan->to);
+        return !$habitual ? $this->from->diffActual($timeSpan->to) : $this->from->diffHabitual($timeSpan->to);
     }
 
     /**
-     * @deprecated Use diffExact() instead.
+     * @deprecated Use diffActual() instead.
      *
      * @param TimeSpan $timeSpan
      *

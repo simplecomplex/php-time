@@ -10,7 +10,7 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 - 'Habitual' diff regime, which ignores daylight saving time (DST).
 
 ### Changed
-- Time::diffExact() replaces Time::diffTime(),
+- Time::diffActual() replaces Time::diffTime(),
   but diff algo essentially unchanged.
 - Deprecated Time::diffTime(), TimeSpan::timeInterval(), TimeSpan::diffTimeSpan().
 - Surely phpunit ^9 will work too.
