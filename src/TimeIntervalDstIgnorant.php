@@ -21,9 +21,12 @@ namespace SimpleComplex\Time;
  * @see \SimpleComplex\Time\TimeInterval::$totalHours
  * @see \SimpleComplex\Time\TimeInterval::$totalDays
  *
+ * @see Time::diffDstIgnorant()
+ *      This class doesn't in itself differ from it's parent, the difference
+ *      lies in the way the Time diff method prepares constructor arguments.
+ *
  * @package SimpleComplex\Time
  */
 class TimeIntervalDstIgnorant extends TimeInterval
 {
-
 }

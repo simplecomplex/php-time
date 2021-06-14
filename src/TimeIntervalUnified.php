@@ -21,9 +21,13 @@ namespace SimpleComplex\Time;
  * However, as long as there aren't more time-interval variants that would
  * be overkill IMHO.
  *
+ * @see Time::diffTime()
+ * @see Time::diffDstIgnorant()
+ *      This class doesn't in itself differ from it's parents, the difference
+ *      lies in the way the Time diff method prepares constructor arguments.
+ *
  * @package SimpleComplex\Time
  */
 class TimeIntervalUnified extends TimeIntervalDstIgnorant
 {
-
 }
