@@ -7,6 +7,17 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 ## [Unreleased]
 
 ### Added
+
+
+### Changed
+
+
+### Fixed
+
+
+## [1.2.0] - 2021-06-14
+
+### Added
 - Diff ignoring daylight saving time (DST) shift.
 
 ### Changed
